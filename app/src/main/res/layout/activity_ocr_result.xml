@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context="com.accurascan.accurasdk.sample.OcrResultActivity">
+
+    <LinearLayout
+        android:id="@+id/llMain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="@dimen/_10dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="@dimen/_20dp"
+
+                    android:orientation="horizontal">
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/lyt_img_cover"
+                        android:layout_width="105dp"
+                        android:layout_height="105dp"
+                        app:cardBackgroundColor="@color/backGroundColor"
+                        app:cardCornerRadius="@dimen/_8dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:id="@+id/ivUserProfile"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="3dp"
+                            android:src="@drawable/default_user" />
+
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/lyt_img_cover2"
+                        android:layout_width="105dp"
+                        android:layout_height="105dp"
+                        android:layout_marginStart="10dp"
+                        android:visibility="gone"
+                        app:cardBackgroundColor="@color/backGroundColor"
+                        app:cardCornerRadius="@dimen/_8dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:id="@+id/ivUserProfile2"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="3dp"
+                            android:elevation="7dp"
+                            android:src="@drawable/default_user" />
+
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layout_button_auth"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_12dp"
+                    android:layout_marginEnd="@dimen/_12dp"
+                    android:orientation="horizontal"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:id="@+id/llLiveness"
+                        style="@style/ResultButtonLayout">
+
+                        <LinearLayout
+                            android:id="@+id/btn_liveness"
+                            style="@style/ResultButtonSubLayout"
+                            android:onClick="onCLickFaceMatch">
+
+                            <ImageView
+                                style="@style/IconLayout"
+                                android:src="@drawable/ic_liveness" />
+
+                            <com.accurascan.ocr.mrz.customview.CustomTextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:text="@string/liveness"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/result_title_text" />
+
+                        </LinearLayout>
+
+                        <com.accurascan.ocr.mrz.customview.CustomTextView
+                            android:id="@+id/tvLivenessScore"
+                            style="@style/ScoreText"
+                            android:text="0 %"
+                            app:typeface="ALLER_STD_REG" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llFaceMatchScore"
+                        style="@style/ResultButtonLayout">
+
+                        <LinearLayout
+                            android:id="@+id/btn_fm"
+                            style="@style/ResultButtonSubLayout"
+                            android:onClick="onCLickFaceMatch">
+
+                            <ImageView
+                                style="@style/IconLayout"
+                                android:src="@drawable/ic_biometric" />
+
+                            <com.accurascan.ocr.mrz.customview.CustomTextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_gravity="center"
+                                android:gravity="center"
+                                android:text="@string/face_match"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="@dimen/result_title_text" />
+
+                        </LinearLayout>
+
+                        <com.accurascan.ocr.mrz.customview.CustomTextView
+                            android:id="@+id/tvFaceMatchScore"
+                            style="@style/ScoreText"
+                            android:text="0 %"
+                            app:typeface="ALLER_STD_REG" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="@dimen/_5dp"
+                    android:background="@color/backGroundColor" />
+                <!--Security Check-->
+                <LinearLayout
+                    android:id="@+id/ly_security_container"
+                    style="@style/ResultButtonLayout"
+                    android:layout_width="match_parent">
+
+                    <LinearLayout
+                        style="@style/ResultButtonSubLayout"
+                        android:layout_width="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="@dimen/_2dp"
+                        android:background="@color/white"
+                        android:padding="@dimen/_5dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_gravity="center"
+                            android:src="@mipmap/ic_document_verified" />
+
+                        <com.accurascan.ocr.mrz.customview.CustomTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="@dimen/_10dp"
+                            android:gravity="center"
+                            android:text="DOCUMENT VERIFIED"
+                            android:textColor="@color/darkGray"
+                            android:textSize="@dimen/result_title_text" />
+
+                    </LinearLayout>
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        android:id="@+id/tv_security"
+                        style="@style/ScoreText"
+                        android:text="Yes"
+                        android:textColor="@color/security_true"
+                        android:textStyle="bold"
+                        app:typeface="ALLER_STD" />
+                </LinearLayout>
+                <!--front table-->
+                <LinearLayout
+                    android:id="@+id/ly_front_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="OCR FRONT" />
+
+                    <TableLayout
+                        android:id="@+id/front_table_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/backGroundColor"
+                        android:showDividers="middle"
+                        android:shrinkColumns="*"
+                        android:stretchColumns="*" />
+
+                </LinearLayout>
+                <!--back table-->
+                <LinearLayout
+                    android:id="@+id/ly_back_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="OCR BACK" />
+
+                    <TableLayout
+                        android:id="@+id/back_table_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/backGroundColor"
+                        android:showDividers="middle"
+                        android:shrinkColumns="*"
+                        android:stretchColumns="*" />
+
+                </LinearLayout>
+                <!--mrz table-->
+                <LinearLayout
+                    android:id="@+id/ly_mrz_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="MRZ" />
+
+                    <TableLayout
+                        android:id="@+id/mrz_table_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/backGroundColor"
+                        android:showDividers="middle"
+                        android:shrinkColumns="*"
+                        android:stretchColumns="*" />
+
+                </LinearLayout>
+                <!--USDL table-->
+                <LinearLayout
+                    android:id="@+id/ly_usdl_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="@string/usa_dl_result" />
+
+                    <TableLayout
+                        android:id="@+id/usdl_table_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/backGroundColor"
+                        android:showDividers="middle"
+                        android:shrinkColumns="*"
+                        android:stretchColumns="*" />
+
+                </LinearLayout>
+                <!--Pdf417 table-->
+                <LinearLayout
+                    android:id="@+id/ly_pdf417_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="@string/PDF417_Barcode" />
+
+                    <TableLayout
+                        android:id="@+id/pdf417_table_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@color/backGroundColor"
+                        android:showDividers="middle"
+                        android:shrinkColumns="*"
+                        android:stretchColumns="*" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ly_front"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="FRONT SIDE" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="15dp"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="3dp"
+                        app:cardElevation="0dp"
+                        app:cardPreventCornerOverlap="true">
+
+                        <ImageView
+                            android:id="@+id/iv_frontside"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_gravity="center_horizontal"
+                            android:scaleType="fitCenter" />
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ly_back"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical"
+                    android:paddingBottom="@dimen/_10dp">
+
+                    <com.accurascan.ocr.mrz.customview.CustomTextView
+                        style="@style/ResultText"
+                        android:text="BACK SIDE" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="15dp"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="@dimen/_2dp"
+                        app:cardElevation="0dp"
+                        app:cardPreventCornerOverlap="true">
+
+                        <ImageView
+                            android:id="@+id/iv_backside"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_gravity="center_horizontal"
+                            android:scaleType="fitCenter" />
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+</RelativeLayout>

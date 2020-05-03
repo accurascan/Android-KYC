@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:showDividers="middle"
+        android:padding="@dimen/_10dp"
+        android:layout_marginStart="@dimen/_15dp"
+        android:layout_marginEnd="@dimen/_15dp"
+        >
+
+        <com.accurascan.ocr.mrz.customview.CustomTextView
+            android:id="@+id/tv_key"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center|start"
+            android:textColor="@color/colorAccent"
+            android:textSize="15sp"
+            android:singleLine="false"
+            android:text="dsfdgfdgd"
+            android:textAllCaps="false"
+            app:typeface="ALLER_STD_REG"/>
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="40dp">
+
+            <!--<View-->
+            <!--android:id="@+id/view"-->
+            <!--android:layout_width="1dp"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:background="@color/tab_color"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:minHeight="40dp"/>-->
+
+            <com.accurascan.ocr.mrz.customview.CustomTextView
+                android:id="@+id/tv_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:layout_centerInParent="true"
+                android:textColor="@color/lightGray"
+                android:textSize="15sp"
+                app:typeface="ALLER_STD_REG"
+                android:minHeight="40dp"/>
+
+            <ImageView
+                android:id="@+id/iv_image"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:gravity="center"
+                android:layout_centerInParent="true"
+                />
+        </RelativeLayout>
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/backGroundColor"/>
+    <!--<View-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="1dp"-->
+    <!--android:background="#FFCCCCCC"/>-->
+
+</LinearLayout>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_home"
+            android:layout_alignTop="@id/lout_main"
+            android:layout_alignBottom="@id/lout_main"
+            />
+
+        <LinearLayout
+            android:id="@+id/lout_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="45dp">
+
+                <ImageView
+                    android:id="@+id/main_logo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_centerInParent="true"
+                    android:contentDescription="@null"
+                    android:src="@mipmap/logo_loign" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:paddingStart="22dp"
+                android:paddingEnd="22dp"
+                android:layout_marginBottom="@dimen/_15dp"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:id="@+id/btnAccuraOCR"
+                    style="@style/MenuItemLayout">
+
+                    <FrameLayout
+                        style="@style/MenuItemOverLayLayout"
+                        android:layout_alignTop="@id/ocr_main_lout"
+                        android:layout_alignBottom="@id/ocr_main_lout" />
+
+                    <RelativeLayout
+                        android:id="@+id/ocr_main_lout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/_10dp">
+
+                        <TextView
+                            android:id="@+id/ocr_tv_title"
+                            style="@style/TextViewTitle"
+                            android:text="@string/accura_ocr" />
+
+                        <TextView
+                            android:id="@+id/ocr_tv_des"
+                            style="@style/TextViewDes"
+                            android:layout_below="@+id/ocr_tv_title"
+                            android:text="@string/accura_ocr_desp" />
+
+                        <LinearLayout
+                            android:id="@+id/ocr_icon_lout"
+                            style="@style/MenuItemIconLayout"
+                            android:layout_below="@id/ocr_tv_des">
+
+                            <ImageView
+                                style="@style/ImageIcons"
+                                android:src="@drawable/ic_scan" />
+
+                            <View style="@style/SeperatorView" />
+
+                            <ImageView
+                                style="@style/ImageIcons"
+                                android:src="@drawable/ic_check" />
+
+                            <View style="@style/SeperatorView" />
+
+                            <ImageView
+                                style="@style/ImageIcons"
+                                android:src="@drawable/ic_result" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/ocr_process_lout"
+                            style="@style/MenuItemBottomLayout"
+                            android:layout_below="@id/ocr_icon_lout"
+                            android:weightSum="1">
+
+                            <TextView
+                                style="@style/ProcessTextTheme"
+                                android:layout_weight="0.28"
+                                android:text="Scan" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.05"
+                                android:gravity="center"
+                                android:text=">"
+                                android:textColor="@color/white"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                style="@style/ProcessTextTheme"
+                                android:layout_weight="0.33"
+                                android:text="Check" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.05"
+                                android:gravity="center"
+                                android:text=">"
+                                android:textColor="@color/white"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                style="@style/ProcessTextTheme"
+                                android:layout_weight="0.28"
+                                android:text="Result" />
+                        </LinearLayout>
+                    </RelativeLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/btnAccuraFace"
+                    style="@style/MenuItemLayout"
+                    android:background="@drawable/btn_bg_gray">
+
+                    <FrameLayout
+                        style="@style/MenuItemOverLayLayout"
+                        android:layout_alignTop="@id/fm_main_lout"
+                        android:layout_alignBottom="@id/fm_main_lout" />
+
+                    <RelativeLayout
+                        android:id="@+id/fm_main_lout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/_10dp">
+
+                        <TextView
+                            android:id="@+id/fm_tv_title"
+                            style="@style/TextViewTitle"
+                            android:text="@string/accura_face_match" />
+
+                        <TextView
+                            android:id="@+id/fm_tv_des"
+                            style="@style/TextViewDes"
+                            android:layout_below="@+id/fm_tv_title"
+                            android:text="@string/accura_face_desp" />
+
+                        <LinearLayout
+                            android:id="@+id/fm_icon_lout"
+                            style="@style/MenuItemIconLayout"
+                            android:layout_below="@id/fm_tv_des"
+                            android:weightSum="1">
+
+                            <ImageView
+                                style="@style/ImageIcons"
+                                android:src="@drawable/ic_scan" />
+
+                            <View style="@style/SeperatorView" />
+
+                            <ImageView
+                                style="@style/ImageIcons"
+                                android:src="@drawable/ic_biometric" />
+
+                            <View style="@style/SeperatorView" />
+
+                            <ImageView
+                                style="@style/ImageIcons"
+                                android:src="@drawable/ic_result" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/fm_process_lout"
+                            style="@style/MenuItemBottomLayout"
+                            android:layout_below="@id/fm_icon_lout"
+                            android:weightSum="1">
+
+                            <TextView
+                                style="@style/ProcessTextTheme"
+                                android:layout_weight="0.28"
+                                android:text="Capture" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.05"
+                                android:gravity="center"
+                                android:text=">"
+                                android:textColor="@color/white"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                style="@style/ProcessTextTheme"
+                                android:layout_weight="0.33"
+                                android:text="Biometric" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="0.05"
+                                android:gravity="center"
+                                android:text=">"
+                                android:textColor="@color/white"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                style="@style/ProcessTextTheme"
+                                android:layout_weight="0.28"
+                                android:text="Result" />
+                        </LinearLayout>
+                    </RelativeLayout>
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </RelativeLayout>
+
+</ScrollView>

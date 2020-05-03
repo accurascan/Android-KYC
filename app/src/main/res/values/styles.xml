@@ -1,0 +1,191 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppThemeActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="FaceMatchTheme" parent="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorControlNormal">@color/white</item>
+<!--        <item name="android:textColorPrimary">@color/white</item>-->
+    </style>
+
+    <style name="MenuItemLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_centerInParent">true</item>
+        <item name="android:layout_gravity">center</item>
+        <!--        <item name="android:layout_marginStart">25dp</item>-->
+        <item name="android:layout_marginTop">25dp</item>
+        <!--        <item name="android:layout_marginEnd">25dp</item>-->
+        <!--        <item name="android:paddingTop">20dp</item>-->
+        <item name="android:background">@drawable/btn_bg_red</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:visibility">visible</item>
+    </style>
+
+    <style name="MenuItemOverLayLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_centerInParent">true</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:background">@drawable/img_button_overlay</item>
+    </style>
+
+
+    <style name="TextViewTitle" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_alignParentTop">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginStart">25dp</item>
+        <item name="android:layout_marginEnd">25dp</item>
+        <!--        <item name="android:layout_marginTop">25dp</item>-->
+        <!--        <item name="android:layout_marginBottom">4dp</item>-->
+        <!--        <item name="android:orientation">horizontal</item>-->
+    </style>
+
+    <style name="TextViewDes" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginStart">20dp</item>
+        <item name="android:layout_marginTop">@dimen/_8dp</item>
+        <item name="android:layout_marginEnd">20dp</item>
+        <item name="android:layout_marginBottom">@dimen/_10dp</item>
+        <!--        <item name="android:orientation">horizontal</item>-->
+    </style>
+
+    <style name="ProcessTextTheme" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <!--        <item name="android:layout_weight">0.26</item>-->
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">14sp</item>
+        <!--        <item name="android:orientation">horizontal</item>-->
+    </style>
+
+    <style name="MenuItemBottomLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <!--        <item name="android:layout_alignParentBottom">true</item>-->
+        <item name="android:layout_gravity">center</item>
+        <item name="android:background">@drawable/btn_bg_trasparent_bottom</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingStart">25dp</item>
+        <item name="android:paddingEnd">25dp</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="MenuItemIconLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingStart">25dp</item>
+        <item name="android:paddingEnd">25dp</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="ImageIcons">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">35dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_weight">0.28</item>
+    </style>
+
+    <style name="SeperatorView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_weight">0.08</item>
+    </style>
+
+
+    <style name="ResultText" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <!--        <item name="android:layout_weight">0.26</item>-->
+        <item name="android:gravity">start</item>
+        <item name="android:textColor">@color/darkGray</item>
+        <item name="android:textSize">17sp</item>
+        <!--        <item name="android:layout_marginTop">10dp</item>-->
+        <item name="android:paddingStart">25dp</item>
+        <item name="android:paddingEnd">15dp</item>
+        <item name="android:paddingTop">15dp</item>
+        <item name="android:paddingBottom">15dp</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:background">@color/backGroundColor</item>
+
+        <!--        <item name="android:orientation">horizontal</item>-->
+    </style>
+
+    <style name="ScoreText" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <!--        <item name="android:layout_weight">0.26</item>-->
+        <item name="android:layout_margin">5dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:textColor">@color/darkGray</item>
+        <item name="android:textSize">17sp</item>
+        <!--        <item name="android:textStyle">bold</item>-->
+        <item name="android:textAllCaps">true</item>
+        <item name="android:layout_centerVertical">true</item>
+
+        <!--        <item name="android:orientation">horizontal</item>-->
+    </style>
+
+    <style name="ResultButtonLayout" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">@dimen/_8dp</item>
+        <!--        <item name="android:layout_marginTop">@dimen/_8dp</item>-->
+        <item name="android:layout_marginEnd">@dimen/_8dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="ResultButtonSubLayout" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/_10dp</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:background">@drawable/btn_bg_red</item>
+        <item name="android:layout_marginTop">@dimen/_5dp</item>
+        <item name="android:layout_marginBottom">@dimen/_8dp</item>
+    </style>
+
+
+    <style name="IconLayout">
+        <item name="android:layout_width">25dp</item>
+        <item name="android:layout_height">25dp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_marginEnd">5dp</item>
+        <item name="android:tint">@color/white</item>
+    </style>
+</resources>

@@ -1,0 +1,65 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        applicationId "com.accurascan.accurasdk.sample"
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    packagingOptions {
+        pickFirst 'lib/arm64-v8a/libcrypto.so'
+        pickFirst 'lib/arm64-v8a/libssl.so'
+
+        pickFirst 'lib/armeabi-v7a/libcrypto.so'
+        pickFirst 'lib/armeabi-v7a/libssl.so'
+
+        pickFirst 'lib/x86/libcrypto.so'
+        pickFirst 'lib/x86/libssl.so'
+
+        pickFirst 'lib/x86_64/libcrypto.so'
+        pickFirst 'lib/x86_64/libssl.so'
+    }
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            universalApk true
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation 'com.squareup.okhttp3:okhttp:3.12.0'
+
+//    implementation 'com.github.accurascan:AccuraOCR:1.0.1'
+    implementation 'com.github.accurascan:AccuraOCR:1.0.2'
+    implementation 'com.github.accurascan:AccuraFaceMatch:1.0'
+}
