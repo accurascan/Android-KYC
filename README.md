@@ -1,11 +1,11 @@
 # Accura KYC Android SDK - OCR, Face Match & Liveness Check
-Android KYC SDK - OCR &amp; Face Match <br/>
-Accura OCR is used for Optical character recognition.<br/>
-Accura Face Match is used for Matching 2 Faces. Source and Target. It matches the User Image from a Selfie vs User Image in document.<br/>
-Accura Authentication is used for your customer verification and authentication.Unlock the True Identity of Your Users with 3D Selfie Technology<br/>
+Android KYC SDK - OCR &amp; Face Match <br/><br/>
+Accura OCR is used for Optical character recognition.<br/><br/>
+Accura Face Match is used for Matching 2 Faces. Source and Target. It matches the User Image from a Selfie vs User Image in document.<br/><br/>
+Accura Authentication is used for your customer verification and authentication.Unlock the True Identity of Your Users with 3D Selfie Technology<br/><br/>
 
 
-Below steps to setup AccuraOcr To your project.
+Below steps to setup Accura SDK's to your project.
 
 ## Install SDK in to your App
 
@@ -82,7 +82,7 @@ Step 1 : To initialize sdk on app start:
         }
     }
 
-    Some customized function are in below.
+    Some customized function below.
     Call this function after initialize sdk
 
     /**
@@ -92,7 +92,9 @@ Step 1 : To initialize sdk on app start:
      * @param blurPercentage is 0 to 100, 0 - clean document and 100 - Blurry document
      * @return 1 if success else 0
      */
+     
     recogEngine.setBlurPercentage(Context context, int /*blurPercentage*/60);
+    
     /**
      * Set Blur Percentage to allow blur on detected Face
      *
@@ -100,22 +102,28 @@ Step 1 : To initialize sdk on app start:
      * @param faceBlurPercentage is 0 to 100, 0 - clean face and 100 - Blurry face
      * @return 1 if success else 0
      */
+    
     recogEngine.setFaceBlurPercentage(Context context, int /*faceBlurPercentage*/55);
+    
     /**
      * @param context       Activity context
      * @param minPercentage Min value
      * @param maxPercentage Max value
      * @return 1 if success else 0
      */
+    
     recogEngine.setGlarePercentage(Context context, int /*minPercentage*/6, int /*maxPercentage*/98);
-     /**
+    
+    /**
      * Set CheckPhotoCopy to allow photocopy document or not
      *
      * @param context          Activity context
      * @param isCheckPhotoCopy if true then reject photo copy document else vice versa
      * @return 1 if success else 0
      */
+    
     recogEngine.isCheckPhotoCopy(Context context, boolean /*isCheckPhotoCopy*/false);
+    
     /**
      * set Hologram detection to allow hologram on face or not
      *
@@ -123,6 +131,7 @@ Step 1 : To initialize sdk on app start:
      * @param isDetectHologram if true then reject face if hologram in face else it is allow .
      * @return 1 if success else 0
      */
+    
     recogEngine.SetHologramDetection(Context context, boolean /*isDetectHologram*/true);
 
 
@@ -148,13 +157,17 @@ Step 2 : Set CameraView
         RelativeLayout linearLayout = findViewById(R.id.ocr_root); // set layout width and height is match_parent
         cameraView = new CameraView(this);
         if (recogType == RecogType.OCR) {
-        // must have to set country code and card code for RecogType.OCR
-            cameraView.setCountryCode(countryCode)
+        
+        // must have a country code and card code for RecogType.OCR
+        
+        cameraView.setCountryCode(countryCode)
                     .setCardCode(cardCode);
 
         } else if (recogType == RecogType.PDF417) {
-        // must have to set country code for RecogType.PDF417
-            cameraView.setCountryCode(countryCode);
+        
+        // must have a country code for RecogType.PDF417
+        
+        cameraView.setCountryCode(countryCode);
         }
         cameraView.setRecogType(recogType)
                 .setView(linearLayout)
@@ -167,6 +180,7 @@ Step 2 : Set CameraView
      * to handle camera on window focus update
      * @param hasFocus
      */
+     
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if (cameraView != null) {
@@ -199,6 +213,7 @@ Step 2 : Set CameraView
      * @param width
      * @param height
      */
+     
     @Override
     public void onUpdateLayout(int width, int height) {
         if (cameraView != null) cameraView.startOcrScan();
@@ -223,6 +238,7 @@ Step 2 : Set CameraView
      * @param mrzData an mrz card data if set {@link com.docrecog.scan.RecogType#MRZ} else it is null
      * @param pdf417Data an barcode PDF417 data if set {@link com.docrecog.scan.RecogType#PDF417} else it is null
      */
+     
     @Override
     public void onScannedComplete(OcrData data, RecogResult mrzData, PDF417Data pdf417Data) {
         if (data != null) {
@@ -242,6 +258,7 @@ Step 2 : Set CameraView
      *                null if message is not available
      * @param isFlip to set your customize animation after complete front scan
      */
+     
     @Override
     public void onProcessUpdate(String title, String message, boolean isFlip) {
         if (title != null) {
@@ -286,9 +303,11 @@ Step 2 : Set CameraView
     tvFaceMatch.setOnClickListener(new OnClickListener() {
         public void onClick(View v) {
             ********** For faceMatch
-            // To pass two image uri for facematch.
+            
+            // To pass two image url for facematch.
             // @params uri1 is for input image
             // @params uri2 is for match image
+            
             helper.getFaceMatchScore(uri1, uri2);
 
 
@@ -296,6 +315,7 @@ Step 2 : Set CameraView
             // must have to helper.setInputImage first and then helper.setMatchImage
             // helper.setInputImage(uri1);
             // helper.setMatchImage(uri2);
+        
         }
     });
     // Override methods of FaceMatchCallBack
@@ -325,6 +345,7 @@ Step 2 : Set CameraView
     }
 
     //call if face detect
+    
     @Override
     public void onLeftDetect(FaceDetectionResult faceResult) {
         // must have to call helper method onLeftDetect(faceResult) to get faceMatch score.
@@ -344,8 +365,9 @@ Step 2 : Set CameraView
 
     And take a look ActivityFaceMatch.java for full working example.
 
-3. Liveness
-    Integrating Zoom SDK for liveness <br/>
+3. Liveness Check
+
+    Integrating Zoom SDK for liveness <br/> <br/>
     Integration steps :<br/>
     1. Download and extract the Zoom android SDK.(can download From
         https://dev.zoomlogin.com/zoomsdk/#/downloads) <br/>
