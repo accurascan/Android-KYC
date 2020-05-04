@@ -1,6 +1,6 @@
-# androidkyc
-Android KYC SDK - OCR &amp; Face Match
-AccuraOCR is use for Optical character recognition.
+# Accura KYC Android
+Android KYC SDK - OCR &amp; Face Match <br/>
+AccuraOCR is use for Optical character recognition.<br/>
 Below steps to setup AccuraOcr To your project.
 
 ## Install SDK in to your App
@@ -356,42 +356,47 @@ Step 2 : Set CameraView
             ZoomSDK.setFacemapEncryptionKey();
             
         d. Initialize the Zoom SDK with required parameter <br/>
-            ZoomSDK.initialize();
-                Parameter - 1.Context
-                            2.AppToken
-                            3.Callbacks
-            // preload sdk resources so the UI is snappy (optional)
-            ZoomSDK.preload(this);
-
+            ZoomSDK.initialize(); <br/>
+                Parameter -  1.Context<br/>
+                             2.AppToken<br/>
+                             3.Callbacks<br/>
+            // preload sdk resources so the UI is snappy (optional)<br/>
+            ZoomSDK.preload(this);<br/>
             // Signal to the ZoOm SDK that audit trail should be captured
             ZoomSDK.setAuditTrailType();
-
             // Signal to ZoOm to also capture time-based session images which can be used in addition to ZoOm Audit Trail per our documentation.
             ZoomSDK.setTimeBasedSessionImagesEnabled(true);
 
-        e. Check Zoom SDK Status
+        e. Check Zoom SDK Status <br/>
+        
             ZoomSDK.getStatus();
                 Parameter - 1.Context
                 Status - 1.NEVER_INITIALIZED
-                        2.INITIALIZED
-                        3.NETWORK_ISSUES
-                        4.INVALID_TOKEN
-                        5.VERSION_DEPRECATED
-                        6.OFFLINE_SESSIONS_EXCEEDED
-                        7.DEVICE_NOT_SUPPORTED
-                        8.DEVICE_IN_LANDSCAPE_MODE
-                        9.DEVICE_IN_REVERSE_PORTRAIT_MODE
-                        10.DEVICE_LOCKED_OUT
-                        11.LICENSE_EXPIRED_OR_INVALID
+                         2.INITIALIZED
+                         3.NETWORK_ISSUES
+                         4.INVALID_TOKEN
+                         5.VERSION_DEPRECATED
+                         6.OFFLINE_SESSIONS_EXCEEDED
+                         7.DEVICE_NOT_SUPPORTED
+                         8.DEVICE_IN_LANDSCAPE_MODE
+                         9.DEVICE_IN_REVERSE_PORTRAIT_MODE
+                         10.DEVICE_LOCKED_OUT
+                         11.LICENSE_EXPIRED_OR_INVALID
+                         
         f. Call zoom verification activity to check the verification result of zoom
+        
             Intent authenticationIntent = new Intent(this,ZoomVerificationActivity.class);
             startActivityForResult(authenticationIntent, ZoomSDK.REQUEST_CODE_VERIFICATION);
-        g. Handle zoom verification result
+            
+        g. Handle zoom verification result<br/>
             in result get bitmap of face by using following code
+            
             Bitmap face = successResult.getFaceMetrics().getAuditTrail().get(0).copy(Bitmap.Config.ARGB_8888, true);
-            successResult is object of ZoomVerificationResult class
-        h. Call Zoom API
-            For Liveness
+            
+          SuccessResult is object of ZoomVerificationResult class
+            
+        h. Call Zoom API For Liveness
+            
             https://api.zoomauth.com/api/v1/biometrics/liveness
             Method type : post
             Request:
