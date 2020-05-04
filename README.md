@@ -1,6 +1,10 @@
 # Accura KYC Android SDK - OCR, Face Match & Liveness Check
 Android KYC SDK - OCR &amp; Face Match <br/>
-AccuraOCR is use for Optical character recognition.<br/>
+Accura OCR is used for Optical character recognition.<br/>
+Accura Face Match is used for Matching 2 Faces. Source and Target. It matches the User Image from a Selfie vs User Image in document.<br/>
+Accura Authentication is used for your customer verification and authentication.Unlock the True Identity of Your Users with 3D Selfie Technology<br/>
+
+
 Below steps to setup AccuraOcr To your project.
 
 ## Install SDK in to your App
