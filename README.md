@@ -3,7 +3,7 @@ Android KYC SDK - OCR &amp; Face Match
 AccuraOCR is use for Optical character recognition.
 Below steps to setup AccuraOcr To your project.
 
-Install SDK in to your App
+## Install SDK in to your App
 
 Step 1: Add the JitPack repository to your build file:
     Add it in your root build.gradle at the end of repositories.
@@ -19,6 +19,7 @@ Step 1: Add the JitPack repository to your build file:
     }
 
 Step 2. Add the token to $HOME/.gradle/gradle.properties:
+
     authToken=jp_lo9e8qo0o1bt4ofne9hob61v19
 
 Step 3: Add the dependency:
@@ -51,14 +52,15 @@ Step 3: Add the dependency:
         implementation 'com.github.accurascan:AccuraFaceMatch:1.0'
     }
 
-Step 4: Add files to project assets folder:
-    Add licence file in to your app assets folder.
-    key.licence // for Accura OCR
-    accuraface.license // for Accura Face Match
+Step 4: Add files to project assets folder:<br />
+    Add licence file in to your app assets folder.<br />
+    - key.licence // for Accura OCR <br />
+    - accuraface.license // for Accura Face Match <br />
+    Generate your Accura licence from https://accurascan.com/developer/sdk-license
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-1. AccuraOCR
+## 1. Setup Accura OCR
 
 Step 1 : To initialize sdk on app start:
 
@@ -255,7 +257,7 @@ Step 2 : Set CameraView
         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
     }
 
-2. Accura Face Match
+## 2. Setup Accura Face Match
 
 1). Simple Usage to face match in your app.
 
@@ -339,17 +341,21 @@ Step 2 : Set CameraView
     And take a look ActivityFaceMatch.java for full working example.
 
 3. Liveness
-    Integrating Zoom SDK for liveness
-    Integration steps :
+    Integrating Zoom SDK for liveness <br/>
+    Integration steps :<br/>
     1. Download and extract the Zoom android SDK.(can download From
-        https://dev.zoomlogin.com/zoomsdk/#/downloads)
-    2. Copy 'zoom-authentication-hybrid-7.0.13.aar' to app/libs/
-    3. Zoom initialization
-        a. Zoom must be initialized with a valid Device SDK License before it will function.
-        b. Copy your Device SDK License Key from your Account Page.
-        c. Set FaceMap encryption key.
+        https://dev.zoomlogin.com/zoomsdk/#/downloads) <br/>
+    2. Copy 'zoom-authentication-hybrid-7.0.13.aar' to app/libs/ <br/>
+    3. Zoom initialization <br/>
+        a. Zoom must be initialized with a valid Device SDK License before it will function. <br/>
+        
+        b. Copy your Device SDK License Key from your Account Page. <br/>
+        
+        c. Set FaceMap encryption key. <br/>
+        
             ZoomSDK.setFacemapEncryptionKey();
-        d. Initialize the Zoom SDK with required parameter
+            
+        d. Initialize the Zoom SDK with required parameter <br/>
             ZoomSDK.initialize();
                 Parameter - 1.Context
                             2.AppToken
