@@ -383,12 +383,12 @@ Step 2 : Set CameraView
             
         d. Initialize the Zoom SDK with required parameter <br/>
 
-            ZoomSDK.initialize(); <br/>
-                Parameter -  1.Context<br/>
-                             2.AppToken<br/>
-                             3.Callbacks<br/>
-            // preload sdk resources so the UI is snappy (optional)<br/>
-            ZoomSDK.preload(this);<br/>
+            ZoomSDK.initialize();
+                Parameter -  1.Context
+                             2.AppToken
+                             3.Callbacks
+            // preload sdk resources so the UI is snappy (optional)
+            ZoomSDK.preload(this);
             // Signal to the ZoOm SDK that audit trail should be captured
             ZoomSDK.setAuditTrailType();
             // Signal to ZoOm to also capture time-based session images which can be used in addition to ZoOm Audit Trail per our documentation.
