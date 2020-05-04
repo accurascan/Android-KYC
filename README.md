@@ -382,6 +382,7 @@ Step 2 : Set CameraView
             ZoomSDK.setFacemapEncryptionKey();
             
         d. Initialize the Zoom SDK with required parameter <br/>
+
             ZoomSDK.initialize(); <br/>
                 Parameter -  1.Context<br/>
                              2.AppToken<br/>

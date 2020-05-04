@@ -33,6 +33,7 @@ import com.accurascan.facematch.util.FaceHelper;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
 import com.accurascan.ocr.mrz.model.RecogResult;
+import com.bumptech.glide.Glide;
 import com.docrecog.scan.RecogType;
 import com.facetec.zoom.sdk.ZoomAuditTrailType;
 import com.facetec.zoom.sdk.ZoomCustomization;
@@ -491,7 +492,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
 
     private void setData() {
         if (face1 != null) {
-            ivUserProfile.setImageBitmap(face1);
+            Glide.with(this).load(face1).centerCrop().into(ivUserProfile);
             ivUserProfile.setVisibility(View.VISIBLE);
         } else {
             ivUserProfile.setVisibility(View.GONE);
@@ -789,7 +790,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         if (faceDetectionResult != null) {
             try {
                 Bitmap face2 = BitmapHelper.createFromARGB(faceDetectionResult.getNewImg(), faceDetectionResult.getNewWidth(), faceDetectionResult.getNewHeight());
-                ivUserProfile2.setImageBitmap(faceDetectionResult.getFaceImage(face2));
+                Glide.with(this).load(faceDetectionResult.getFaceImage(face2)).centerCrop().into(ivUserProfile2);
                 loutImg2.setVisibility(View.VISIBLE);
             } catch (Exception e) {
                 e.printStackTrace();
