@@ -56,11 +56,11 @@ Step 3: Add the dependency:
         implementation 'com.github.accurascan:AccuraFaceMatch:1.0'
     }
 
-Step 4: Add files to project assets folder:<br />
+Step 4: Add files to project assets folder:(/src/main/assets) <br />
     Add licence file in to your app assets folder.<br />
     - key.licence // for Accura OCR <br />
     - accuraface.license // for Accura Face Match <br />
-    Generate your Accura licence from https://accurascan.com/developer/sdk-license
+    Generate your Accura licence from https://accurascan.com/developer/dashboard
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -76,9 +76,9 @@ Step 1 : To initialize sdk on app start:
         if (sdkModel.isOCREnable) List<ContryModel> modelList = recogEngine.getCardList(MainActivity.this);
         if (modelList != null) {
             ContryModel contryModel = modelList.get(position);
-            contryModel.getCountry_id(); // get country id
+            contryModel.getCountry_id(); // get country code
             CardModel model = contryModel.getCards().get(0);
-            model..getCard_id() // get card id
+            model..getCard_id() // get card code
         }
     }
 
@@ -447,3 +447,16 @@ Step 2 : Set CameraView
                 "errorFromZoomServer": null
                 }
                 }
+
+
+## ProGuard
+--------
+Depending on your ProGuard (DexGuard) config and usage, you may need to include the following lines in your proguards.
+
+```pro
+-keep public class com.docrecog.scan.ImageOpencv {;}
+-keep class com.accurascan.ocr.mrz.model.* {;}
+-keep class com.accurascan.ocr.mrz.interfaces.* {;}
+-keep public class com.inet.facelock.callback.FaceCallback {*;}
+-keep public class com.inet.facelock.callback.FaceDetectionResult {*;}
+```
