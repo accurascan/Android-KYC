@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <RelativeLayout
@@ -13,5 +14,15 @@
     </RelativeLayout>
 
     <include layout="@layout/custom_frame_layout" />
+    <ImageView
+        android:id="@+id/btn_flip"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="@dimen/_5dp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="@dimen/_20dp"
+        android:contentDescription="Flip camera"
+        android:text="flip"
+        android:src="@drawable/flip_camera_icon"/>
 
 </RelativeLayout>

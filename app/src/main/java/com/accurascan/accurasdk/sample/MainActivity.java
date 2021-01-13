@@ -5,8 +5,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -17,46 +19,129 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.accurascan.facedetection.utils.AccuraLivenessLog;
 import com.accurascan.ocr.mrz.model.ContryModel;
+import com.accurascan.ocr.mrz.util.AccuraLog;
 import com.accurascan.ocr.mrz.util.Util;
+import com.docrecog.scan.MRZDocumentType;
 import com.docrecog.scan.RecogEngine;
 import com.docrecog.scan.RecogType;
+import com.google.gson.Gson;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private ProgressDialog progressBar;
-    private Handler handler = new Handler() {
+    private static class MyHandler extends Handler {
+        private final WeakReference<MainActivity> mActivity;
+
+        public MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            if (progressBar != null && progressBar.isShowing()) {
-                progressBar.dismiss();
-            }
-            Log.e(TAG, "handleMessage: " + msg.what);
-            if (msg.what == 1) {
-                if (sdkModel.isMRZEnable) btnMrz.setVisibility(View.VISIBLE);
-                if (sdkModel.isOCREnable && modelList != null) {
-                    setCountryLayout();
+            MainActivity activity = mActivity.get();
+            if (activity != null) {
+                if (activity.progressBar != null && activity.progressBar.isShowing()) {
+                    activity.progressBar.dismiss();
+                }
+                Log.e(TAG, "handleMessage: " + msg.what);
+                if (msg.what == 1) {
+                    if (activity.sdkModel.isMRZEnable) {
+                        activity.btnIdMrz.setVisibility(View.VISIBLE);
+                        activity.btnVisaMrz.setVisibility(View.VISIBLE);
+                        activity.btnPassportMrz.setVisibility(View.VISIBLE);
+                        activity.btnMrz.setVisibility(View.VISIBLE);
+                    }
+                    if (activity.sdkModel.isBankCardEnable)
+                        activity.btnBank.setVisibility(View.VISIBLE);
+                    if (activity.sdkModel.isOCREnable && activity.modelList != null) {
+                        activity.setCountryLayout();
+                    }
+                } else {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
+                    builder1.setMessage(activity.responseMessage);
+                    builder1.setCancelable(true);
+                    builder1.setPositiveButton(
+                            "OK",
+                            (dialog, id) -> dialog.cancel());
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
                 }
             }
         }
-    };
+    }
+
+    private static class NativeThread extends Thread {
+        private final WeakReference<MainActivity> mActivity;
+
+        public NativeThread(MainActivity activity) {
+            mActivity = new WeakReference<MainActivity>(activity);
+        }
+
+        @Override
+        public void run() {
+            MainActivity activity = mActivity.get();
+            if (activity != null) {
+                try {
+                    // doWorkNative();
+                    RecogEngine recogEngine = new RecogEngine();
+                    activity.sdkModel = recogEngine.initEngine(activity);
+                    AccuraLog.enableLogs(true);
+                    AccuraLivenessLog.setDEBUG(true);
+                    AccuraLog.loge(TAG, "Initialized Engine : " + activity.sdkModel.i + " -> " + activity.sdkModel.message);
+                    activity.responseMessage = activity.sdkModel.message;
+
+                    if (activity.sdkModel.i >= 0) {
+
+                        // if OCR enable then get card list
+                        if (activity.sdkModel.isOCREnable)
+                            activity.modelList = recogEngine.getCardList(activity);
+                        AccuraLog.loge(TAG, "run: " + new Gson().toJson(activity.modelList) );
+
+                        recogEngine.setBlurPercentage(activity, 62);
+                        recogEngine.setFaceBlurPercentage(activity, 70);
+                        recogEngine.setGlarePercentage(activity, 6, 98);
+                        recogEngine.isCheckPhotoCopy(activity, false);
+                        recogEngine.SetHologramDetection(activity, true);
+                        recogEngine.setLowLightTolerance(activity, 39);
+                        recogEngine.setMotionData(activity, 18);
+
+                        activity.handler.sendEmptyMessage(1);
+                    } else
+                        activity.handler.sendEmptyMessage(0);
+
+                } catch (Exception e) {
+                }
+            }
+            super.run();
+        }
+    }
+
+    private Thread nativeThread = new NativeThread(this);
     private RecyclerView rvCountry, rvCards;
     private CardListAdpter countryAdapter, cardAdapter;
     private List<Object> contryList = new ArrayList<>();
     private List<Object> cardList = new ArrayList<>();
     private List<ContryModel> modelList;
     private int selectedPosition = -1;
-    private View btnMrz, btnPDF417, lout_country;
+    private View btnMrz, btnPassportMrz, btnIdMrz, btnVisaMrz, btnBank, lout_country;
     private RecogEngine.SDKModel sdkModel;
+    private String responseMessage;
+    private Handler handler = new MyHandler(this);
 
     private void setCountryLayout() {
 //        contryList = new ArrayList<>();
@@ -67,16 +152,85 @@ public class MainActivity extends BaseActivity {
         MainActivity.this.rvCards.setVisibility(View.INVISIBLE);
     }
 
+    // must have to required storage permission to print logs
+    public void printLog() {
+        File file = new File(Environment.getExternalStorageDirectory(), "AccuraKYCDemo.log");
+        String command = "logcat -f "+ file.getPath() + " -v time *:V";
+        Log.d(TAG, "command: " + command);
+
+        try{
+            Runtime.getRuntime().exec(command);
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+        Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        scanIntent.setData(Uri.fromFile(file));
+        sendBroadcast(scanIntent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         btnMrz = findViewById(R.id.lout_mrz);
         btnMrz.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, OcrActivity.class);
                 RecogType.MRZ.attachTo(intent);
+                MRZDocumentType.NONE.attachTo(intent);
+                intent.putExtra("card_name", getResources().getString(R.string.other_mrz));
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
+
+        btnPassportMrz = findViewById(R.id.lout_passport_mrz);
+        btnIdMrz = findViewById(R.id.lout_id_mrz);
+        btnVisaMrz = findViewById(R.id.lout_visa_mrz);
+        btnPassportMrz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, OcrActivity.class);
+                RecogType.MRZ.attachTo(intent);
+                MRZDocumentType.PASSPORT_MRZ.attachTo(intent);
+                intent.putExtra("card_name", getResources().getString(R.string.passport_mrz));
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
+        btnIdMrz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, OcrActivity.class);
+                RecogType.MRZ.attachTo(intent);
+                MRZDocumentType.ID_CARD_MRZ.attachTo(intent);
+                intent.putExtra("card_name", getResources().getString(R.string.id_mrz));
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
+        btnVisaMrz.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, OcrActivity.class);
+                RecogType.MRZ.attachTo(intent);
+                MRZDocumentType.VISA_MRZ.attachTo(intent);
+                intent.putExtra("card_name", getResources().getString(R.string.visa_mrz));
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
+
+        btnBank = findViewById(R.id.lout_bank);
+        btnBank.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, OcrActivity.class);
+                RecogType.BANKCARD.attachTo(intent);
+                intent.putExtra("card_name", getResources().getString(R.string.bank_card));
                 startActivity(intent);
                 overridePendingTransition(0, 0);
             }
@@ -92,22 +246,35 @@ public class MainActivity extends BaseActivity {
         rvCards.setLayoutManager(new LinearLayoutManager(this));
         cardAdapter = new CardListAdpter(this, cardList);
         rvCards.setAdapter(cardAdapter);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Util.isPermissionsGranted(this)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !isPermissionsGranted(this)) {
             requestCameraPermission();
         } else {
             doWork();
         }
     }
 
+    public static boolean isPermissionsGranted(Context context) {
+        String[] permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        for (String permission : permissions) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+        }
+        return true;
+    }
+
     //requesting the camera permission
     public void requestCameraPermission() {
         int currentapiVersion = Build.VERSION.SDK_INT;
         if (currentapiVersion >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                    requestPermissions(new String[]{Manifest.permission.CAMERA}, 1);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
-                    requestPermissions(new String[]{Manifest.permission.CAMERA}, 1);
+                    requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 }
             }
         }
@@ -135,36 +302,13 @@ public class MainActivity extends BaseActivity {
     }
 
     public void doWork() {
+        printLog();  // Create Log file
         progressBar = new ProgressDialog(this);
         progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressBar.setMessage("Please wait...");
         progressBar.setCancelable(false);
         progressBar.show();
-
-        new Handler().postDelayed(new Runnable() {
-            public void run() {
-                Log.d(TAG, "Worker started");
-                try {
-                    // doWorkNative();
-                    RecogEngine recogEngine = new RecogEngine();
-                    sdkModel = recogEngine.initEngine(MainActivity.this);
-                    if (sdkModel.i > 0) {
-                        recogEngine.setBlurPercentage(MainActivity.this, 60);
-                        recogEngine.setFaceBlurPercentage(MainActivity.this, 55);
-                        recogEngine.setGlarePercentage(MainActivity.this, 6,98);
-                        recogEngine.isCheckPhotoCopy(MainActivity.this, false);
-                        recogEngine.SetHologramDetection(MainActivity.this, true);
-                        if (sdkModel.isOCREnable)
-                            modelList = recogEngine.getCardList(MainActivity.this);
-                        handler.sendEmptyMessage(1);
-                    } else
-                        handler.sendEmptyMessage(0);
-
-                } catch (Exception e) {
-                    Log.e("threadmessage", e.getMessage());
-                }
-            }
-        },500);
+        nativeThread.start();
     }
 
     public class CardListAdpter extends RecyclerView.Adapter {
@@ -213,13 +357,14 @@ public class MainActivity extends BaseActivity {
                     public void onClick(View v) {
 
                         Intent intent = new Intent(CardListAdpter.this.context, OcrActivity.class);
-                        intent.putExtra("country_code", ((ContryModel) MainActivity.this.contryList.get(selectedPosition)).getCountry_id());
-                        intent.putExtra("card_code", cardModel.getCard_id());
-                        if (cardModel.getCard_type() == 1) {
-                            RecogType.PDF417.attachTo(intent);
-                        }else {
-                            RecogType.OCR.attachTo(intent);
-                        }
+                        intent.putExtra("country_id", ((ContryModel) MainActivity.this.contryList.get(selectedPosition)).getCountry_id());
+                        intent.putExtra("card_id", cardModel.getCard_id());
+                        intent.putExtra("card_name", cardModel.getCard_name());
+
+                        if (cardModel.getCard_type() == 1) RecogType.PDF417.attachTo(intent);
+                        else if (cardModel.getCard_type() == 2) RecogType.DL_PLATE.attachTo(intent);
+                        else RecogType.OCR.attachTo(intent);
+
                         startActivity(intent);
                         overridePendingTransition(0, 0);
                     }
@@ -261,5 +406,4 @@ public class MainActivity extends BaseActivity {
             MainActivity.this.rvCards.setVisibility(View.INVISIBLE);
         }
     }
-
 }

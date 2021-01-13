@@ -15,4 +15,11 @@
     <color name="backGroundColor">#edeff5</color>
     <color name="security_true">#a0d536</color>
     <color name="security_false">#db4437</color>
+
+
+    // Accura liveness screen
+    <color name="livenessBackground">#FFC4C4C5</color>
+    <color name="livenessCloseIcon">#FF000000</color>
+    <color name="livenessfeedbackBg">#00000000</color>
+    <color name="livenessfeedbackText">#FF000000</color>
 </resources>

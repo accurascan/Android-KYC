@@ -18,7 +18,6 @@ class BaseActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        initializeProgressDialog();
     }
 
     @Override
@@ -38,6 +37,9 @@ class BaseActivity extends AppCompatActivity {
     }
 
     public void showProgressDialog() {
+        if (mProgressDialog==null){
+            initializeProgressDialog();
+        }
         try {
             if (mProgressDialog != null && !mProgressDialog.isShowing()) {
                 mProgressDialog.show();

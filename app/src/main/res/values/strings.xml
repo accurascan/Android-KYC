@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">Accura SDK</string>
 
-    <string name="passport_id_mrz"><![CDATA[Passport & ID MRZ]]></string>
+    <string name="passport_mrz"><![CDATA[Passport MRZ]]></string>
+    <string name="id_mrz"><![CDATA[ID Card MRZ]]></string>
+    <string name="visa_mrz"><![CDATA[VISA MRZ]]></string>
+    <string name="other_mrz"><![CDATA[Other MRZ]]></string>
+    <string name="bank_card">Bank Card</string>
     <string name="accura_ocr">OCR</string>
     <string name="accura_ocr_desp"><![CDATA[Recognizes Passports, Driving License & National ID\'s From All Countries. Works Ofﬂine]]></string>
     <string name="accura_face_match">FACE MATCH</string>
@@ -18,10 +22,6 @@
     <dimen name="result_title_text">17sp</dimen>
     <dimen name="_12dp">12dp</dimen>
 
-
-    <string name="base_zoom">https://api.zoomauth.com/api/v1/biometrics/</string>
-
-    <string name="base">https://accurascan.com/dev_v1/</string>
     <string name="header_key">ApiKey</string>
     <string name="header_key_new">Api-Key</string>
     <string name="header_key_zoom">X-App-Token</string>
@@ -38,6 +38,5 @@
     <string name="key_not_set">Retrieving facemaps requires that you generate a public/private key pair per the instructions at https://dev.zoomlogin.com/zoomsdk/#/zoom-server-guide</string>
     <string name="public_key_not_set">Public Key Not Set</string>
 
-    <string name="api">https://accurascan.com/v2/api</string>
 
 </resources>

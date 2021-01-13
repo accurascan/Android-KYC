@@ -1,8 +1,11 @@
 package com.accurascan.accurasdk.sample;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -12,24 +15,62 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.accurascan.ocr.mrz.CameraView;
 import com.accurascan.ocr.mrz.interfaces.OcrCallback;
+import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
 import com.accurascan.ocr.mrz.model.RecogResult;
+import com.accurascan.ocr.mrz.motiondetection.SensorsActivity;
+import com.accurascan.ocr.mrz.util.AccuraLog;
+import com.docrecog.scan.MRZDocumentType;
+import com.docrecog.scan.RecogEngine;
 import com.docrecog.scan.RecogType;
 
-public class OcrActivity extends AppCompatActivity implements OcrCallback {
+import java.lang.ref.WeakReference;
 
+public class OcrActivity extends SensorsActivity implements OcrCallback {
+
+    private static final String TAG = OcrActivity.class.getSimpleName();
     private CameraView cameraView;
     private View viewLeft, viewRight, borderFrame;
     private TextView tvTitle, tvScanMessage;
     private ImageView imageFlip;
-    private int cardCode;
-    private int countryCode;
+    private int cardId;
+    private int countryId;
     RecogType recogType;
+    Dialog types_dialog;
+    private String cardName;
+    private boolean isBack = false;
+    private MRZDocumentType mrzType;
+
+    private static class MyHandler extends Handler {
+        private final WeakReference<OcrActivity> mActivity;
+
+        public MyHandler(OcrActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            OcrActivity activity = mActivity.get();
+            if (activity != null) {
+                String s = "";
+                if (msg.obj instanceof String) s = (String) msg.obj;
+                switch (msg.what) {
+                    case 0: activity.tvTitle.setText(s);break;
+                    case 1: activity.tvScanMessage.setText(s);break;
+                    case 2: if (activity.cameraView != null) activity.cameraView.flipImage(activity.imageFlip);
+                        break;
+                    default: break;
+                }
+            }
+            super.handleMessage(msg);
+        }
+    }
+
+    private Handler handler = new MyHandler(this);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,34 +78,59 @@ public class OcrActivity extends AppCompatActivity implements OcrCallback {
         setTheme(R.style.AppThemeNoActionBar);
         requestWindowFeature(Window.FEATURE_NO_TITLE); // Hide the window title.
         setContentView(R.layout.ocr_activity);
+        AccuraLog.loge(TAG, "Start Camera Activity");
         init();
 
         recogType = RecogType.detachFrom(getIntent());
-        cardCode = getIntent().getIntExtra("card_code", -1);
-        countryCode = getIntent().getIntExtra("country_code", -1);
+        if (getIntent().hasExtra(MRZDocumentType.class.getName())) {
+            mrzType = MRZDocumentType.detachFrom(getIntent());
+        } else {
+            mrzType = MRZDocumentType.NONE;
+        }
+        cardId = getIntent().getIntExtra("card_id", 0);
+        countryId = getIntent().getIntExtra("country_id", 0);
+        cardName = getIntent().getStringExtra("card_name");
 
+        AccuraLog.loge(TAG, "RecogType " + recogType);
+        AccuraLog.loge(TAG, "Card Id " + cardId);
+        AccuraLog.loge(TAG, "Country Id " + countryId);
+
+        initCamera();
+    }
+
+    private void initCamera() {
+        AccuraLog.loge(TAG, "Initialized camera");
+        //<editor-fold desc="To get status bar height">
         Rect rectangle = new Rect();
         Window window = getWindow();
         window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
-        int statusBarHeight = rectangle.top;
-        int contentViewTop =
-                window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
-        int titleBarHeight = contentViewTop - statusBarHeight;
+        int statusBarTop = rectangle.top;
+        int contentViewTop = window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
+        int statusBarHeight = contentViewTop - statusBarTop;
+        //</editor-fold>
 
         RelativeLayout linearLayout = findViewById(R.id.ocr_root); // layout width and height is match_parent
-        cameraView = new CameraView(this);
-        if (recogType == RecogType.OCR) {
-            cameraView.setCountryCode(countryCode)
-                    .setCardCode(cardCode);
 
+        cameraView = new CameraView(this);
+        if (recogType == RecogType.OCR || recogType == RecogType.DL_PLATE) {
+            // must have to set data for RecogType.OCR and RecogType.DL_PLATE
+            cameraView.setCountryId(countryId).setCardId(cardId);
         } else if (recogType == RecogType.PDF417) {
-            cameraView.setCountryCode(countryCode);
+            // must have to set data RecogType.PDF417
+            cameraView.setCountryId(countryId);
+        } else if (recogType == RecogType.MRZ) {
+            cameraView.setMRZDocumentType(mrzType);
         }
         cameraView.setRecogType(recogType)
-                .setView(linearLayout)
-                .setOcrCallback(this)
-                .setTitleBarHeight(titleBarHeight)
-                .init();
+                .setView(linearLayout) // To add camera view
+                .setCameraFacing(0) // To set front or back camera.
+                .setOcrCallback(this)  // To get Update and Success Call back
+                .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
+                .setFrontSide()
+//                optional field
+//                .setEnableMediaPlayer(false) // false to disable sound and true to enable sound and default it is true
+//                .setCustomMediaPlayer(MediaPlayer.create(this, com.accurascan.ocr.mrz.R.raw.beep)) // To add your custom sound and Must have to enable media player
+                .init();  // initialized camera
     }
 
     private void init() {
@@ -74,6 +140,12 @@ public class OcrActivity extends AppCompatActivity implements OcrCallback {
         tvTitle = findViewById(R.id.tv_title);
         tvScanMessage = findViewById(R.id.tv_scan_msg);
         imageFlip = findViewById(R.id.im_flip_image);
+        View btn_flip = findViewById(R.id.btn_flip);
+        btn_flip.setOnClickListener(v -> {
+            if (cameraView!=null) {
+                cameraView.flipCamera();
+            }
+        });
     }
 
     @Override
@@ -94,22 +166,30 @@ public class OcrActivity extends AppCompatActivity implements OcrCallback {
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
+        AccuraLog.loge(TAG, "onDestroy");
         if (cameraView != null) cameraView.onDestroy();
         super.onDestroy();
+        Runtime.getRuntime().gc(); // to clear garbage
     }
 
     /**
-     * to update your border frame according to width and height
-     * it's different for different card
-     * call {@link CameraView#startOcrScan()} method to start camera preview
+     * Override method call after camera initialized successfully
      *
-     * @param width
-     * @param height
+     * And update your border frame according to width and height
+     * it's different for different card
+     *
+     * Call {@link CameraView#startOcrScan(boolean isReset)} To start Camera Preview
+     *
+     * @param width    border layout width
+     * @param height   border layout height
      */
     @Override
     public void onUpdateLayout(int width, int height) {
-        if (cameraView != null) cameraView.startOcrScan();
+        AccuraLog.loge(TAG, "Frame Size (wxh) : " + width + "x" +  height);
+        if (cameraView != null) cameraView.startOcrScan(false);
+
+        //<editor-fold desc="To set camera overlay Frame">
         ViewGroup.LayoutParams layoutParams = borderFrame.getLayoutParams();
         layoutParams.width = width;
         layoutParams.height = height;
@@ -122,62 +202,186 @@ public class OcrActivity extends AppCompatActivity implements OcrCallback {
         viewLeft.setLayoutParams(lpLeft);
 
         findViewById(R.id.ocr_frame).setVisibility(View.VISIBLE);
+        //</editor-fold>
     }
 
     /**
-     * call this method after retrieve data from card
+     * Override this method after scan complete to get data from document
      *
-     * @param data    is scanned card data if set {@link com.docrecog.scan.RecogType#OCR} else it is null
-     * @param mrzData an mrz card data if set {@link com.docrecog.scan.RecogType#MRZ} else it is null
-     * @param pdf417Data an barcode PDF417 data if set {@link com.docrecog.scan.RecogType#PDF417} else it is null
+     * @param result is scanned card data
+     *  result instance of {@link OcrData} if recog type is {@link com.docrecog.scan.RecogType#OCR}
+     *              or {@link com.docrecog.scan.RecogType#DL_PLATE}
+     *  result instance of {@link RecogResult} if recog type is {@link com.docrecog.scan.RecogType#MRZ}
+     *  result instance of {@link PDF417Data} if recog type is {@link com.docrecog.scan.RecogType#PDF417}
+     *
      */
     @Override
-    public void onScannedComplete(OcrData data, RecogResult mrzData, PDF417Data pdf417Data) {
-        Intent intent = new Intent(this, OcrResultActivity.class);
-        if (data != null) {
-            OcrData.setOcrResult(data);
-            RecogType.OCR.attachTo(intent);
-            startActivityForResult(intent, 101);
-//            finish();
-        } else if (mrzData != null) {
-            RecogResult.setRecogResult(mrzData);
-            RecogType.MRZ.attachTo(intent);
-            startActivityForResult(intent, 101);
-//            finish();
-        } else if (pdf417Data != null) {
-            PDF417Data.setPDF417Result(pdf417Data);
-            RecogType.PDF417.attachTo(intent);
-            startActivityForResult(intent, 101);
-//            finish();
+    public void onScannedComplete(Object result) {
+        Runtime.getRuntime().gc(); // To clear garbage
+        AccuraLog.loge(TAG, "onScannedComplete: ");
+        if (result != null) {
+            if (result instanceof OcrData) {
+                if (recogType == RecogType.OCR) {
+                    if (isBack || !cameraView.isBackSideAvailable()) {
+                        OcrData.setOcrResult((OcrData) result);
+                        /**@recogType is {@see com.docrecog.scan.RecogType#OCR}*/
+                        sendDataToResultActivity(RecogType.OCR);
+
+                    } else {
+                        isBack = true;
+                        cameraView.setBackSide();
+                        cameraView.flipImage(imageFlip);
+                    }
+                } else if (recogType == RecogType.DL_PLATE) {
+                    /**
+                     * @recogType is {@see com.docrecog.scan.RecogType#DL_PLATE}*/
+                    OcrData.setOcrResult((OcrData) result);
+                    sendDataToResultActivity(RecogType.DL_PLATE);
+                }
+            } else if (result instanceof RecogResult) {
+                /**
+                 *  @recogType is {@see com.docrecog.scan.RecogType#MRZ}*/
+                RecogResult.setRecogResult((RecogResult) result);
+                sendDataToResultActivity(RecogType.MRZ);
+            } else if (result instanceof CardDetails) {
+                /**
+                 *  @recogType is {@link com.docrecog.scan.RecogType#MRZ}*/
+                CardDetails.setCardDetails((CardDetails) result);
+                sendDataToResultActivity(RecogType.BANKCARD);
+            } else if (result instanceof PDF417Data) {
+                /**
+                 *  @recogType is {@see com.docrecog.scan.RecogType#PDF417}*/
+                if (isBack || !cameraView.isBackSideAvailable()) {
+                    PDF417Data.setPDF417Result((PDF417Data) result);
+                    sendDataToResultActivity(RecogType.PDF417);
+                } else {
+                    isBack = true;
+                    cameraView.setBackSide();
+                    cameraView.flipImage(imageFlip);
+                }
+            }
         } else Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
     }
 
+    private void sendDataToResultActivity(RecogType recogType) {
+        if (cameraView != null) cameraView.release(true);
+        Intent intent = new Intent(this, OcrResultActivity.class);
+        recogType.attachTo(intent);
+        startActivityForResult(intent, 101);
+    }
+
     /**
-     * @param title   to display scan card message(is front/ back card of the #cardName)
-     *                null if title is not available.
-     * @param message to display process message.
+     * @param titleCode to display scan card message on top of border Frame
+     *
+     * @param errorMessage To display process message.
      *                null if message is not available
-     * @param isFlip  to set your customize animation after complete front scan
+     * @param isFlip  To set your customize animation after complete front scan
      */
     @Override
-    public void onProcessUpdate(String title, String message, boolean isFlip) {
-        if (title != null) {
-            tvTitle.setText(title);
+    public void onProcessUpdate(int titleCode, String errorMessage, boolean isFlip) {
+        AccuraLog.loge(TAG, "onProcessUpdate :-> " + titleCode + "," + errorMessage + "," + isFlip);
+        Message message;
+        if (getTitleMessage(titleCode) != null) {
+            /**
+             *
+             * 1. Scan Frontside of Card Name // for front side ocr
+             * 2. Scan Backside of Card Name // for back side ocr
+             * 3. Scan Card Name // only for single side ocr
+             * 4. Scan Front Side of Document // for MRZ and PDF417
+             * 5. Now Scan Back Side of Document // for MRZ and PDF417
+             * 6. Scan Number Plate // for DL plate
+             */
+
+            message = new Message();
+            message.what = 0;
+            message.obj = getTitleMessage(titleCode);
+            handler.sendMessage(message);
+//            tvTitle.setText(title);
         }
-        if (message != null) {
-            tvScanMessage.setText(message);
+        if (errorMessage != null) {
+            message = new Message();
+            message.what = 1;
+            message.obj = getErrorMessage(errorMessage);
+            handler.sendMessage(message);
+//            tvScanMessage.setText(message);
         }
         if (isFlip) {
-            if (cameraView != null)
-                cameraView.flipImage(imageFlip); //  to set default animation or remove this line to set your customize animation
+            message = new Message();
+            message.what = 2;
+            handler.sendMessage(message);//  to set default animation or remove this line to set your customize animation
+        }
+
+    }
+
+    private String getTitleMessage(int titleCode) {
+        if (titleCode < 0) return null;
+        switch (titleCode){
+            case RecogEngine.SCAN_TITLE_OCR_FRONT:// for front side ocr;
+                return String.format("Scan Front Side of %s", cardName);
+            case RecogEngine.SCAN_TITLE_OCR_BACK: // for back side ocr
+                return String.format("Scan Back Side of %s", cardName);
+            case RecogEngine.SCAN_TITLE_OCR: // only for single side ocr
+                return String.format("Scan %s", cardName);
+            case RecogEngine.SCAN_TITLE_MRZ_PDF417_FRONT:// for front side MRZ and PDF417
+                if (recogType == RecogType.BANKCARD) {
+                    return "Scan Bank Card";
+                } else
+                    return "Scan Front Side of Document";
+            case RecogEngine.SCAN_TITLE_MRZ_PDF417_BACK: // for back side MRZ and PDF417
+                return "Now Scan Back Side of Document";
+            case RecogEngine.SCAN_TITLE_DLPLATE: // for DL plate
+                return "Scan Number Plate";
+            default:return "";
+        }
+    }
+
+    private String getErrorMessage(String s) {
+        switch (s) {
+            case RecogEngine.ACCURA_ERROR_CODE_MOTION:
+                return "Keep Document Steady";
+            case RecogEngine.ACCURA_ERROR_CODE_DOCUMENT_IN_FRAME:
+                return "Keep document in frame";
+            case RecogEngine.ACCURA_ERROR_CODE_BRING_DOCUMENT_IN_FRAME:
+                return "Bring card near to frame.";
+            case RecogEngine.ACCURA_ERROR_CODE_PROCESSING:
+                return "Processing...";
+            case RecogEngine.ACCURA_ERROR_CODE_BLUR_DOCUMENT:
+                return "Blur detect in document";
+            case RecogEngine.ACCURA_ERROR_CODE_FACE_BLUR:
+                return "Blur detected over face";
+            case RecogEngine.ACCURA_ERROR_CODE_GLARE_DOCUMENT:
+                return "Glare detect in document";
+            case RecogEngine.ACCURA_ERROR_CODE_HOLOGRAM:
+                return "Hologram Detected";
+            case RecogEngine.ACCURA_ERROR_CODE_DARK_DOCUMENT:
+                return "Low lighting detected";
+            case RecogEngine.ACCURA_ERROR_CODE_PHOTO_COPY_DOCUMENT:
+                return "Can not accept Photo Copy Document";
+            case RecogEngine.ACCURA_ERROR_CODE_FACE:
+                return "Face not detected";
+            case RecogEngine.ACCURA_ERROR_CODE_MRZ:
+                return "MRZ not detected";
+            case RecogEngine.ACCURA_ERROR_CODE_PASSPORT_MRZ:
+                return "Passport MRZ not detected";
+            case RecogEngine.ACCURA_ERROR_CODE_ID_MRZ:
+                return "ID card MRZ not detected";
+            case RecogEngine.ACCURA_ERROR_CODE_VISA_MRZ:
+                return "Visa MRZ not detected";
+            case RecogEngine.ACCURA_ERROR_CODE_WRONG_SIDE:
+                return "Scanning wrong side of document";
+            case RecogEngine.ACCURA_ERROR_CODE_UPSIDE_DOWN_SIDE:
+                return "Document is upside down. Place it properly";
+            default:
+                return s;
         }
     }
 
     @Override
-    public void onError(String errorMessage) {
+    public void onError(final String errorMessage) {
         // stop ocr if failed
         tvScanMessage.setText(errorMessage);
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+        Runnable runnable = () -> Toast.makeText(OcrActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+        runOnUiThread(runnable);
     }
 
     @Override
@@ -185,8 +389,17 @@ public class OcrActivity extends AppCompatActivity implements OcrCallback {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             if (requestCode == 101) {
-                if (cameraView != null) cameraView.init();
+                Runtime.getRuntime().gc(); // To clear garbage
+                //<editor-fold desc="Call CameraView#startOcrScan(true) To start again Camera Preview
+                //And CameraView#startOcrScan(false) To start first time">
+                if (cameraView != null) {
+                    isBack = false;
+                    cameraView.setFrontSide();
+                    cameraView.startOcrScan(true);
+                }
+                //</editor-fold>
             }
         }
     }
+
 }
