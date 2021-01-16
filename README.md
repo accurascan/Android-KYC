@@ -51,7 +51,7 @@ Step 3: Add the dependency:
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:1.0.2'
+        implementation 'com.github.accurascan:AccuraOCR:1.0.3'
         // for Accura Face Match
         implementation 'com.github.accurascan:AccuraFaceMatch:1.0'
     }
