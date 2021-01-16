@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-keep class com.accurascan.ocr.mrz.model.** {*;}
+-keep class com.accurascan.ocr.mrz.interfaces.** {*;}
+-keep class com.docrecog.scan.ImageOpencv {*;}
+-keep public class com.inet.facelock.callback.FaceCallback {*;}
+-keep public class com.inet.facelock.callback.FaceDetectionResult {*;}

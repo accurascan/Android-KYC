@@ -27,7 +27,7 @@
             android:textSize="15sp"
             android:singleLine="false"
             android:text="dsfdgfdgd"
-            android:textAllCaps="false"
+            android:textAllCaps="true"
             app:typeface="ALLER_STD_REG"/>
 
         <RelativeLayout
@@ -53,6 +53,7 @@
                 android:layout_centerInParent="true"
                 android:textColor="@color/lightGray"
                 android:textSize="15sp"
+                android:textAllCaps="true"
                 app:typeface="ALLER_STD_REG"
                 android:minHeight="40dp"/>
 

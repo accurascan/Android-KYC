@@ -9,7 +9,7 @@ Below steps to setup Accura SDK's to your project.
 
 ## Install SDK in to your App
 
-Step 1: Add the JitPack repository to your build file:
+#### Step 1: Add the JitPack repository to your build file:
     Add it in your root build.gradle at the end of repositories.
 
     allprojects {
@@ -22,12 +22,12 @@ Step 1: Add the JitPack repository to your build file:
         }
     }
 
-Step 2. Add the token to $HOME/.gradle/gradle.properties:
+#### Step 2. Add the token to `gradle.properties`:
 
     authToken=jp_lo9e8qo0o1bt4ofne9hob61v19
 
-Step 3: Add the dependency:
-    Set AccuraOcr as a dependency to our app/build.gradle file.
+#### Step 3: Add the dependency:
+    Set Accura SDK as a dependency to our app/build.gradle file.
 
     android {
         compileOptions {
@@ -46,250 +46,399 @@ Step 3: Add the dependency:
 
             pickFirst 'lib/x86_64/libcrypto.so'
             pickFirst 'lib/x86_64/libssl.so'
-            }
+		}
     }
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:1.0.3'
+        implementation 'com.github.accurascan:AccuraOCR:2.0.1'
         // for Accura Face Match
         implementation 'com.github.accurascan:AccuraFaceMatch:1.0'
+        // for liveness
+		implementation 'com.github.accurascan:Liveness-Android:1.1.1'
     }
 
-Step 4: Add files to project assets folder:(/src/main/assets) <br />
-    Add licence file in to your app assets folder.<br />
-    - key.licence // for Accura OCR <br />
-    - accuraface.license // for Accura Face Match <br />
-    Generate your Accura licence from https://accurascan.com/developer/dashboard
+#### Step 4: Add files to project assets folder:
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Create "assets" folder under app/src/main and Add license file in to assets folder.
+    - key.license // for Accura OCR
+    - accuraface.license // for Accura Face Match
+    Generate your Accura license from https://accurascan.com/developer/dashboard
 
 ## 1. Setup Accura OCR
-
-Step 1 : To initialize sdk on app start:
+* Require `key.license` to implement Accura OCR in to your app
+#### Step 1 : To initialize sdk on app start:
 
     RecogEngine recogEngine = new RecogEngine();
     RecogEngine.SDKModel sdkModel = recogEngine.initEngine(your activity context);
 
-    if (sdkModel.i > 0) {
-        // if sdkModel.isOCREnable then get card data
+    if (sdkModel.i > 0) { // means license is valid
+
+         if (sdkModel.isMRZEnable) // RecogType.MRZ
+
+         if (sdkModel.isBankCardEnable)  // RecogType.BANKCARD
+
+        // sdkModel.isOCREnable is true then get card list which you are selected on creating license
         if (sdkModel.isOCREnable) List<ContryModel> modelList = recogEngine.getCardList(MainActivity.this);
-        if (modelList != null) {
-            ContryModel contryModel = modelList.get(position);
-            contryModel.getCountry_id(); // get country code
-            CardModel model = contryModel.getCards().get(0);
-            model..getCard_id() // get card code
+        if (modelList != null) { // if country & card added in license
+            ContryModel contryModel = modelList.get(selected country position);
+            contryModel.getCountry_id(); // getting country id
+            CardModel model = contryModel.getCards().get(0/*selected card position*/); // getting card
+            model.getCard_id() // getting card id
+            model.getCard_name()  // getting card name
+
+            if (cardModel.getCard_type() == 1) {
+                // RecogType.PDF417
+            } else if (cardModel.getCard_type() == 2) {
+                // RecogType.DL_PLATE
+            } else {
+                // RecogType.OCR
+            }
         }
     }
 
-    Some customized function below.
-    Call this function after initialize sdk
+##### Update filters like below.</br>
+  Call this function after initialize sdk if license is valid(sdkModel.i > 0)
+   * Set Blur Percentage to allow blur on document
 
-    /**
-     * Set Blur Percentage to allow blur on document
-     *
-     * @param context        Activity context
-     * @param blurPercentage is 0 to 100, 0 - clean document and 100 - Blurry document
-     * @return 1 if success else 0
-     */
-     
-    recogEngine.setBlurPercentage(Context context, int /*blurPercentage*/60);
-    
-    /**
-     * Set Blur Percentage to allow blur on detected Face
-     *
-     * @param context            Activity context
-     * @param faceBlurPercentage is 0 to 100, 0 - clean face and 100 - Blurry face
-     * @return 1 if success else 0
-     */
-    
-    recogEngine.setFaceBlurPercentage(Context context, int /*faceBlurPercentage*/55);
-    
-    /**
-     * @param context       Activity context
-     * @param minPercentage Min value
-     * @param maxPercentage Max value
-     * @return 1 if success else 0
-     */
-    
-    recogEngine.setGlarePercentage(Context context, int /*minPercentage*/6, int /*maxPercentage*/98);
-    
-    /**
-     * Set CheckPhotoCopy to allow photocopy document or not
-     *
-     * @param context          Activity context
-     * @param isCheckPhotoCopy if true then reject photo copy document else vice versa
-     * @return 1 if success else 0
-     */
-    
-    recogEngine.isCheckPhotoCopy(Context context, boolean /*isCheckPhotoCopy*/false);
-    
-    /**
-     * set Hologram detection to allow hologram on face or not
-     *
-     * @param context          Activity context
-     * @param isDetectHologram if true then reject face if hologram in face else it is allow .
-     * @return 1 if success else 0
-     */
-    
-    recogEngine.SetHologramDetection(Context context, boolean /*isDetectHologram*/true);
+        ```
+		//0 for clean document and 100 for Blurry document
+		recogEngine.setBlurPercentage(Context context, int /*blurPercentage*/50);
+		```
+   * Set Face blur Percentage to allow blur on detected Face
 
+        ```
+		// 0 for clean face and 100 for Blurry face
+		recogEngine.setFaceBlurPercentage(Context context, int /*faceBlurPercentage*/50);
+        ```
+   * Set Glare Percentage to detect Glare on document
 
-Step 2 : Set CameraView
+        ```
+		// Set min and max percentage for glare
+		recogEngine.setGlarePercentage(Context context, int /*minPercentage*/6, int /*maxPercentage*/98);
+		```
+   * Set Photo Copy to allow photocopy document or not
 
-    private CameraView cameraView;
+        ```
+		// Set min and max percentage for glare
+		recogEngine.isCheckPhotoCopy(Context context, boolean /*isCheckPhotoCopy*/false);
+		```
+   * Set Hologram detection to verify the hologram on the face
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setTheme(R.style.AppThemeNoActionBar);
-        setContentView(R.layout.your layout);
+        ```
+		// true to check hologram on face
+		recogEngine.SetHologramDetection(Context context, boolean /*isDetectHologram*/true);
+		```
+   * Set light tolerance to detect light on document
 
-        RecogType recogType = RecogType.OCR; // or set RecogType.MRZ, RecogType.PDF417
+        ```
+        // 0 for full dark document and 100 for full bright document
+        recogEngine.setLowLightTolerance(Context context, int /*tolerance*/30);
+        ```
+   * Set motion threshold to detect motion on camera document
+		```
+        // 1 - allows 1% motion on document and
+        // 100 - it can not detect motion and allow document to scan.
+        recogEngine.setMotionThreshold(Context context, int /*motionThreshold*/18);
+        ```
 
-        Rect rectangle = new Rect();
-        Window window = getWindow();
-        window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
-        int statusBarHeight = rectangle.top;
-        int contentViewTop = window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
-        int titleBarHeight = contentViewTop - statusBarHeight;
+#### Step 2 : Set CameraView
+```
+Must have to extend com.accurascan.ocr.mrz.motiondetection.SensorsActivity to your activity.
 
-        RelativeLayout linearLayout = findViewById(R.id.ocr_root); // set layout width and height is match_parent
-        cameraView = new CameraView(this);
-        if (recogType == RecogType.OCR) {
-        
-        // must have a country code and card code for RecogType.OCR
-        
-        cameraView.setCountryCode(countryCode)
-                    .setCardCode(cardCode);
+private CameraView cameraView;
 
-        } else if (recogType == RecogType.PDF417) {
-        
-        // must have a country code for RecogType.PDF417
-        
-        cameraView.setCountryCode(countryCode);
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setTheme(R.style.AppThemeNoActionBar);
+    setContentView(R.layout.your layout);
+
+    // Recog type selection base on your license data
+    // As like RecogType.OCR, RecogType.MRZ, RecogType.PDF417, RecogType.DL_PLATE, RecogType.BANKCARD
+    RecogType recogType = RecogType.OCR;
+    cardId = CardModel.getCard_id();
+    cardName = CardModel.getCard_name();
+    countryId = ContryModel.getCountry_id();
+
+    // initialized camera
+    initCamera();
+}
+
+private void initCamera() {
+    //<editor-fold desc="To get status bar height">
+    Rect rectangle = new Rect();
+    Window window = getWindow();
+    window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
+    int statusBarTop = rectangle.top;
+    int contentViewTop = window.findViewById(Window.ID_ANDROID_CONTENT).getTop();
+    int statusBarHeight = contentViewTop - statusBarTop;
+    //</editor-fold>
+
+    RelativeLayout linearLayout = findViewById(R.id.ocr_root); // layout width and height is match_parent
+
+    cameraView = new CameraView(this);
+    if (recogType == RecogType.OCR || recogType == RecogType.DL_PLATE) {
+        // must have to set data for RecogType.OCR and RecogType.DL_PLATE
+        cameraView.setCountryId(countryId).setCardId(cardId);
+    } else if (recogType == RecogType.PDF417) {
+        // must have to set data RecogType.PDF417
+        cameraView.setCountryId(countryId);
+    }
+    if (recogType == RecogType.MRZ) {
+        // Also set MRZ document type to scan specific MRZ document
+        // 1. ALL MRZ document       - MRZDocumentType.NONE        
+        // 2. Passport MRZ document  - MRZDocumentType.PASSPORT_MRZ
+        // 3. ID card MRZ document   - MRZDocumentType.ID_CARD_MRZ 
+        // 4. Visa MRZ document      - MRZDocumentType.VISA_MRZ    
+        cameraView.setMRZDocumentType(mrzDocumentType);
+    }
+    cameraView.setRecogType(recogType)
+            .setView(linearLayout) // To add camera view
+            .setCameraFacing(0) // // To set selfie(1) or rear(0) camera.
+            .setOcrCallback(this)  // To get feedback and Success Call back
+            .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
+            .setFrontSide() // or cameraView.setBackSide(); to scan card side front or back default it's scan front side first
+//                Option setup
+//                .setEnableMediaPlayer(false) // false to disable default sound and true to enable sound and default it is true
+//                .setCustomMediaPlayer(MediaPlayer.create(this, /*custom sound file*/)) // To add your custom sound and Must have to enable media player
+            .init();  // initialized camera
+}
+
+/**
+ * To handle camera on window focus update
+ * @param hasFocus
+ */
+@Override
+public void onWindowFocusChanged(boolean hasFocus) {
+    if (cameraView != null) {
+        cameraView.onWindowFocusUpdate(hasFocus);
+    }
+}
+
+@Override
+protected void onResume() {
+    super.onResume();
+    cameraView.onResume();
+}
+
+@Override
+protected void onPause() {
+    cameraView.onPause();
+    super.onPause();
+}
+
+@Override
+protected void onDestroy() {
+    cameraView.onDestroy();
+    super.onDestroy();
+}
+
+/**
+ * To update your border frame according to width and height
+ * it's different for different card
+ * Call {@link CameraView#startOcrScan(boolean isReset)} To start Camera Preview
+ * @param width    border layout width
+ * @param height   border layout height
+ */
+@Override
+public void onUpdateLayout(int width, int height) {
+    if (cameraView != null) cameraView.startOcrScan(false);
+
+    //<editor-fold desc="To set camera overlay Frame">
+    ViewGroup.LayoutParams layoutParams = borderFrame.getLayoutParams();
+    layoutParams.width = width;
+    layoutParams.height = height;
+    borderFrame.setLayoutParams(layoutParams);
+
+    ViewGroup.LayoutParams lpRight = viewRight.getLayoutParams();
+    lpRight.height = height;
+    viewRight.setLayoutParams(lpRight);
+
+    ViewGroup.LayoutParams lpLeft = viewLeft.getLayoutParams();
+    lpLeft.height = height;
+    viewLeft.setLayoutParams(lpLeft);
+    //</editor-fold>
+}
+
+/**
+ * Override this method after scan complete to get data from document
+ *
+ * @param result is scanned card data
+ *  result instance of {@link OcrData} if recog type is {@link com.docrecog.scan.RecogType#OCR}
+ *              or {@link com.docrecog.scan.RecogType#DL_PLATE}
+ *  result instance of {@link RecogResult} if recog type is {@link com.docrecog.scan.RecogType#MRZ}
+ *  result instance of {@link CardDetails} if recog type is {@link com.docrecog.scan.RecogType#BANKCARD}
+ *  result instance of {@link PDF417Data} if recog type is {@link com.docrecog.scan.RecogType#PDF417}
+ *
+ */
+@Override
+public void onScannedComplete(Object result) {
+    // display data on ui thread
+    Log.e("TAG", "onScannedComplete: ");
+    if (result != null) {
+    	// make sure release camera view before open result screen
+    	// if (cameraView != null) cameraView.release(true);
+        // Do some code for display data
+
+        if (result instanceof OcrData) {
+            if (recogType == RecogType.OCR) {
+                // @recogType is {@see com.docrecog.scan.RecogType#OCR}
+                if (isBack || !cameraView.isBackSideAvailable()) { // To check card has back side or not
+            		OcrData.setOcrResult((OcrData) result); // Set data To retrieve it anywhere
+                } else {
+                    isBack = true;
+                    cameraView.setBackSide(); // To recognize data from back side too.
+                    cameraView.flipImage(imageFlip);
+                }
+            } else if (recogType == RecogType.DL_PLATE) {
+                // @recogType is {@see com.docrecog.scan.RecogType#DL_PLATE}
+            	OcrData.setOcrResult((OcrData) result); // Set data To retrieve it anywhere
+            }
+        } else if (result instanceof RecogResult) {
+            // @recogType is {@see com.docrecog.scan.RecogType#MRZ}
+            RecogResult.setRecogResult((RecogResult) result); // Set data To retrieve it anywhere
+        } else if (result instanceof CardDetails) {
+            //  @recogType is {@see com.docrecog.scan.RecogType#BANKCARD}
+            CardDetails.setCardDetails((CardDetails) result); // Set data To retrieve it anywhere
+        } else if (result instanceof PDF417Data) {
+            //  @recogType is {@see com.docrecog.scan.RecogType#PDF417}
+            if (isBack || !cameraView.isBackSideAvailable()) {
+                PDF417Data.setPDF417Result((PDF417Data) result); // Set data To retrieve it anywhere
+                sendDataToResultActivity(RecogType.PDF417);
+            } else {
+                isBack = true;
+                cameraView.setBackSide(); // To recognize data from back side too.
+                cameraView.flipImage(imageFlip);
+            }
         }
-        cameraView.setRecogType(recogType)
-                .setView(linearLayout)
-                .setOcrCallback(this)
-                .setTitleBarHeight(titleBarHeight) // for get camera height if title bar is visible and also add Action bar height if visible.
-                .init();
-    }
+    } else Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+}
 
-    /**
-     * to handle camera on window focus update
-     * @param hasFocus
-     */
-     
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        if (cameraView != null) {
-            cameraView.onWindowFocusUpdate(hasFocus);
+/**
+ * @param titleCode to display scan card message on top of border Frame
+ *
+ * @param errorMessage To display process message.
+ *                null if message is not available
+ * @param isFlip  true to set your customize animation for scan back card alert after complete front scan
+ *                and also used cameraView.flipImage(ImageView) for default animation
+ */
+@Override
+public void onProcessUpdate(int titleCodetitleCode, String errorMessage, boolean isFlip) {
+    // display data on ui thread
+    // Check activity com.accurascan.accurasdk.sample.OcrActivity.java to getTitleMessage(titleCode)
+    // And getErrorMessage(errorMessage)
+    if (getTitleMessage(titleCode) != null) { // check
+        Toast.makeText(this, getTitleMessage(titleCode), Toast.LENGTH_SHORT).show(); // display title
+    }
+    if (message != null) {
+        Toast.makeText(this, getErrorMessage(errorMessage), Toast.LENGTH_SHORT).show(); // display message
+    }
+    if (isFlip) {
+        cameraView.flipImage(imageFlip);
+    }
+}
+
+@Override
+public void onError(String errorMessage) {
+    // display data on ui thread
+    // stop ocr if failed
+    Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+}
+
+private String getTitleMessage(int titleCode) {
+    if (titleCode < 0) return null;
+    switch (titleCode){
+        case RecogEngine.SCAN_TITLE_OCR_FRONT:// for front side ocr;
+            return String.format("Scan Front Side of %s", cardName);
+        case RecogEngine.SCAN_TITLE_OCR_BACK: // for back side ocr
+            return String.format("Scan Back Side of %s", cardName);
+        case RecogEngine.SCAN_TITLE_OCR: // only for single side ocr
+            return String.format("Scan %s", cardName);
+        case RecogEngine.SCAN_TITLE_MRZ_PDF417_FRONT:// for front side MRZ, PDF417 and BankCard
+            if (recogType == RecogType.BANKCARD) {
+                return "Scan Bank Card";
+            } else
+                return "Scan Front Side of Document";
+        case RecogEngine.SCAN_TITLE_MRZ_PDF417_BACK: // for back side MRZ and PDF417
+            return "Now Scan Back Side of Document";
+        case RecogEngine.SCAN_TITLE_DLPLATE: // for DL plate
+            return "Scan Number Plate";
+        default:return "";
+    }
+}
+
+private String getErrorMessage(String s) {
+    switch (s) {
+        case RecogEngine.ACCURA_ERROR_CODE_MOTION:
+            return "Keep Document Steady";
+        case RecogEngine.ACCURA_ERROR_CODE_DOCUMENT_IN_FRAME:
+            return "Keep document in frame";
+        case RecogEngine.ACCURA_ERROR_CODE_BRING_DOCUMENT_IN_FRAME:
+            return "Bring card near to frame.";
+        case RecogEngine.ACCURA_ERROR_CODE_PROCESSING:
+            return "Processing...";
+        case RecogEngine.ACCURA_ERROR_CODE_BLUR_DOCUMENT:
+            return "Blur detect in document";
+        case RecogEngine.ACCURA_ERROR_CODE_FACE_BLUR:
+            return "Blur detected over face";
+        case RecogEngine.ACCURA_ERROR_CODE_GLARE_DOCUMENT:
+            return "Glare detect in document";
+        case RecogEngine.ACCURA_ERROR_CODE_HOLOGRAM:
+            return "Hologram Detected";
+        case RecogEngine.ACCURA_ERROR_CODE_DARK_DOCUMENT:
+            return "Low lighting detected";
+        case RecogEngine.ACCURA_ERROR_CODE_PHOTO_COPY_DOCUMENT:
+            return "Can not accept Photo Copy Document";
+        case RecogEngine.ACCURA_ERROR_CODE_FACE:
+            return "Face not detected";
+        case RecogEngine.ACCURA_ERROR_CODE_MRZ:
+            return "MRZ not detected";
+        case RecogEngine.ACCURA_ERROR_CODE_PASSPORT_MRZ:
+            return "Passport MRZ not detected";
+        case RecogEngine.ACCURA_ERROR_CODE_ID_MRZ:
+            return "ID card MRZ not detected";
+        case RecogEngine.ACCURA_ERROR_CODE_VISA_MRZ:
+            return "Visa MRZ not detected";
+        case RecogEngine.ACCURA_ERROR_CODE_WRONG_SIDE:
+            return "Scanning wrong side of document";
+        case RecogEngine.ACCURA_ERROR_CODE_UPSIDE_DOWN_SIDE:
+            return "Document is upside down. Place it properly";
+        default:
+            return s;
+    }
+}
+
+// After getting result to restart scanning you have to set below code onActivityResult
+// when you use startActivityForResult(Intent, RESULT_ACTIVITY_CODE) to open result activity.
+@Override
+protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    ...
+    if (resultCode == RESULT_OK) {
+        if (requestCode == RESULT_ACTIVITY_CODE) {
+            Runtime.getRuntime().gc(); // To clear garbage
+            //<editor-fold desc="Call CameraView#startOcrScan(true) to scan document again">
+
+            if (cameraView != null) cameraView.startOcrScan(true);
+
+            //</editor-fold>
         }
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        cameraView.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        cameraView.onPause();
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        cameraView.onDestroy();
-        super.onDestroy();
-    }
-
-    /**
-     * to update your border frame according to width and height
-     * it's different for different card
-     * call {@link CameraView#startOcrScan()} method to start camera preview
-     * @param width
-     * @param height
-     */
-     
-    @Override
-    public void onUpdateLayout(int width, int height) {
-        if (cameraView != null) cameraView.startOcrScan();
-
-        ViewGroup.LayoutParams layoutParams = borderFrame.getLayoutParams();
-        layoutParams.width = width;
-        layoutParams.height = height;
-        borderFrame.setLayoutParams(layoutParams);
-
-        ViewGroup.LayoutParams lpRight = viewRight.getLayoutParams();
-        lpRight.height = height;
-        viewRight.setLayoutParams(lpRight);
-
-        ViewGroup.LayoutParams lpLeft = viewLeft.getLayoutParams();
-        lpLeft.height = height;
-        viewLeft.setLayoutParams(lpLeft);
-    }
-
-    /**
-     * call this method after retrieve data from card
-     * @param data is scanned card data if set {@link com.docrecog.scan.RecogType#OCR} else it is null
-     * @param mrzData an mrz card data if set {@link com.docrecog.scan.RecogType#MRZ} else it is null
-     * @param pdf417Data an barcode PDF417 data if set {@link com.docrecog.scan.RecogType#PDF417} else it is null
-     */
-     
-    @Override
-    public void onScannedComplete(OcrData data, RecogResult mrzData, PDF417Data pdf417Data) {
-        if (data != null) {
-            OcrData.setOcrResult(data);
-        } else if (mrzData != null) {
-            RecogResult.setRecogResult(mrzData);
-        } else if (pdf417Data != null) {
-            PDF417Data.setPDF417Result(pdf417Data);
-        } else Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     *
-     * @param title to display scan card message(is front/ back card of the #cardName)
-     *              null if title is not available.
-     * @param message to display process message.
-     *                null if message is not available
-     * @param isFlip to set your customize animation after complete front scan
-     */
-     
-    @Override
-    public void onProcessUpdate(String title, String message, boolean isFlip) {
-        if (title != null) {
-            Toast.makeText(this, title, Toast.LENGTH_SHORT).show(); // display title
-        }
-        if (message != null) {
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show(); // display message
-        }
-        if (isFlip) {
-            cameraView.flipImage(imageFlip); //  to set default animation or remove this line to set your customize animation
-        }
-    }
-
-    @Override
-    public void onError(String errorMessage) {
-        // stop ocr if failed
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
-    }
+}
+```
 
 ## 2. Setup Accura Face Match
+* Require `accuraface.license` to implement Accura Face Match in to your app
+#### Step 1 : Simple Usage to face match in your app.
 
-1). Simple Usage to face match in your app.
-
-    // Just add FaceMatch activity to your manifest:
+    // Just add FaceMatchActivity to your manifest:
     <activity android:name="com.accurascan.facematch.ui.FaceMatchActivity"/>
 
     // Start Intent to open activity
     Intent intent = new Intent(this, FaceMatchActivity.class);
     startActivity(intent);
 
-2). Implement face match code manually to your activity.
+#### Step 2 : Implement face match code manually to your activity.
 
     Important Grant Camera and storage Permission.
 
@@ -304,7 +453,7 @@ Step 2 : Set CameraView
         public void onClick(View v) {
             ********** For faceMatch
             
-            // To pass two image url for facematch.
+            // To pass two image uri for facematch.
             // @params uri1 is for input image
             // @params uri2 is for match image
             
@@ -365,15 +514,91 @@ Step 2 : Set CameraView
 
     And take a look ActivityFaceMatch.java for full working example.
 
-3. Liveness Check
+## 3. Liveness Check
 
-Contact AccuraScan at contact@accurascan.com for Liveness SDK or API 
+Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
+
+#### Step 1 : Add following code in Manifest.
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <application
+        ...
+        android:networkSecurityConfig="@xml/network_security_config"
+        >
+
+     </application>
+
+#### Step 2 :  Add following code to your Application class or MainActivity for hostname verification
+
+    new HostnameVerifier() {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
+            return hv.verify("your url host name", session);
+        }
+    };
+
+#### Step 3 : Open camera for liveness Detectcion.
+
+    Must have to Grant camera permission
+
+    private final static int ACCURA_LIVENESS_CAMERA = 100;
+
+    // To customize your screen theme and feed back messages
+    LivenessCustomization livenessCustomization = new LivenessCustomization();
+
+    livenessCustomization.backGroundColor = getResources().getColor(R.color.livenessBackground);
+    livenessCustomization.closeIconColor = getResources().getColor(R.color.livenessCloseIcon);
+    livenessCustomization.feedbackBackGroundColor = Color.TRANSPARENT;
+    livenessCustomization.feedbackTextColor = Color.BLACK;
+    livenessCustomization.feedbackTextSize = 18;
+    livenessCustomization.feedBackframeMessage = "Frame Your Face";
+    livenessCustomization.feedBackAwayMessage = "Move Phone Away";
+    livenessCustomization.feedBackOpenEyesMessage = "Keep Open Your Eyes";
+    livenessCustomization.feedBackCloserMessage = "Move Phone Closer";
+    livenessCustomization.feedBackCenterMessage = "Center Your Face";
+    livenessCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
+    livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
+    livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
+    livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+
+    // must have to call SelfieCameraActivity.getCustomIntent() to create intent
+    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your_url");
+    startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
+
+
+    // Handle accura liveness result.
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == ACCURA_LIVENESS_CAMERA && data != null) {
+                AccuraVerificationResult result = data.getParcelableExtra("Accura.liveness");
+                if (result == null) {
+                    return;
+                }
+                if (result.getStatus().equals("1")) {
+                    // result get bitmap of face by using following code
+                    Bitmap bitmap = result.getFaceBiometrics();
+                    double livenessScore = result.getLivenessResult().getLivenessScore() * 100.0;
+                    Toast.makeText(this, "Liveness Score : " + livenessScore, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 
 ## ProGuard
---------
+
 Depending on your ProGuard (DexGuard) config and usage, you may need to include the following lines in your proguards.
 
-```pro
+```
 -keep public class com.docrecog.scan.ImageOpencv {;}
 -keep class com.accurascan.ocr.mrz.model.* {;}
 -keep class com.accurascan.ocr.mrz.interfaces.* {;}

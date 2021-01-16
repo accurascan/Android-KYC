@@ -18,30 +18,23 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
-import com.accurascan.accurasdk.sample.api.HandleResponse;
-import com.accurascan.accurasdk.sample.api.ZoomConnectedAPI;
-import com.accurascan.accurasdk.sample.api.ZoomConnectedConfig;
-import com.accurascan.accurasdk.sample.model.LivenessData;
 import com.accurascan.accurasdk.sample.util.AlertDialogAbstract;
-import com.accurascan.accurasdk.sample.util.ParsedResponse;
+import com.accurascan.facedetection.LivenessCustomization;
+import com.accurascan.facedetection.SelfieCameraActivity;
+import com.accurascan.facedetection.model.AccuraVerificationResult;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.facematch.util.FaceHelper;
+import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
 import com.accurascan.ocr.mrz.model.RecogResult;
 import com.bumptech.glide.Glide;
 import com.docrecog.scan.RecogType;
-import com.facetec.zoom.sdk.ZoomAuditTrailType;
-import com.facetec.zoom.sdk.ZoomCustomization;
-import com.facetec.zoom.sdk.ZoomSDK;
-import com.facetec.zoom.sdk.ZoomSDKStatus;
-import com.facetec.zoom.sdk.ZoomVerificationActivity;
-import com.facetec.zoom.sdk.ZoomVerificationResult;
-import com.facetec.zoom.sdk.ZoomVerificationStatus;
 import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 
@@ -52,73 +45,90 @@ import java.io.File;
 public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMatchCallBack, FaceCallback {
 
     Bitmap face1;
-
-    TableLayout mrz_table_layout, front_table_layout, back_table_layout, usdl_table_layout, pdf417_table_layout;
+    private final int ACCURA_LIVENESS_CAMERA = 101;
+    TableLayout mrz_table_layout, front_table_layout, back_table_layout, usdl_table_layout, pdf417_table_layout, bank_table_layout;
 
     ImageView ivUserProfile, ivUserProfile2, iv_frontside, iv_backside;
     LinearLayout ly_back, ly_front;
-    View ly_mrz_container, ly_front_container, ly_back_container, ly_security_container, ly_pdf417_container, ly_usdl_container;
-    View loutImg2;
+    View ly_auth_container, ly_mrz_container, ly_front_container, ly_back_container, ly_security_container,
+            ly_pdf417_container, ly_usdl_container, dl_plate_lout, ly_bank_container;
+    View loutImg, loutImg2;
     private FaceHelper faceHelper;
     private TextView tvFaceMatchScore, tvLivenessScore, tv_security;
-    private ZoomConnectedAPI zoomConnectedAPI;
-    private final ZoomSDK.InitializeCallback mInitializeCallback = new ZoomSDK.InitializeCallback() {
-        @Override
-        public void onCompletion(boolean successful) {
-            if (successful) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                    }
-                });
-            } else {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                    }
-                });
-            }
-        }
-    };
     private boolean isFaceMatch = false, isLiveness = false;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ocr_result);
 
-//        faceHelper = new FaceHelper(this); // call on button click
-        zoomConnectedAPI = new ZoomConnectedAPI(ZoomConnectedConfig.AppToken, getApplicationContext().getPackageName(), this);
-
         initUI();
 
         if (RecogType.detachFrom(getIntent()) == RecogType.OCR) {
             // RecogType.OCR
             OcrData ocrData = OcrData.getOcrResult();
-            setOcrData(ocrData);
-        } else if (RecogType.detachFrom(getIntent()) == RecogType.MRZ) {
-            // RecogType.MRZ
-            RecogResult g_recogResult = RecogResult.getRecogResult();
-            setMRZData(g_recogResult);
+            if (ocrData != null) {
+                setOcrData(ocrData);
+            }
+        } else if (RecogType.detachFrom(getIntent()) == RecogType.BANKCARD) {
+            ly_back.setVisibility(View.GONE);
+            loutImg.setVisibility(View.GONE);
+            loutImg2.setVisibility(View.GONE);
+            ivUserProfile.setVisibility(View.GONE);
+            ly_auth_container.setVisibility(View.GONE);
 
-            if (g_recogResult.docFrontBitmap != null) {
-                iv_frontside.setImageBitmap(g_recogResult.docFrontBitmap);
+            CardDetails cardDetails = CardDetails.getCardDetails();
+            setBankData(cardDetails);
+
+            if (cardDetails.getBitmap() != null) {
+                iv_frontside.setImageBitmap(cardDetails.getBitmap());
             } else {
                 ly_front.setVisibility(View.GONE);
             }
 
-            if (g_recogResult.docBackBitmap != null) {
-                iv_backside.setImageBitmap(g_recogResult.docBackBitmap);
-            } else {
-                ly_back.setVisibility(View.GONE);
-            }
+        } else if (RecogType.detachFrom(getIntent()) == RecogType.MRZ) {
+            // RecogType.MRZ
+            RecogResult g_recogResult = RecogResult.getRecogResult();
+            if (g_recogResult != null) {
+                setMRZData(g_recogResult);
+
+                if (g_recogResult.docFrontBitmap != null) {
+                    iv_frontside.setImageBitmap(g_recogResult.docFrontBitmap);
+                } else {
+                    ly_front.setVisibility(View.GONE);
+                }
+
+                if (g_recogResult.docBackBitmap != null) {
+                    iv_backside.setImageBitmap(g_recogResult.docBackBitmap);
+                } else {
+                    ly_back.setVisibility(View.GONE);
+                }
 
 
-            if (g_recogResult.faceBitmap != null) {
-                face1 = g_recogResult.faceBitmap;
+                if (g_recogResult.faceBitmap != null) {
+                    face1 = g_recogResult.faceBitmap;
+                }
             }
             setData();
+        } else if (RecogType.detachFrom(getIntent()) == RecogType.DL_PLATE) {
+            View view = findViewById(R.id.v_divider);
+            dl_plate_lout.setVisibility(View.VISIBLE);
+            loutImg.setVisibility(View.GONE);
+            view.setVisibility(View.GONE);
+            ly_back.setVisibility(View.GONE);
+            ivUserProfile.setVisibility(View.GONE);
+            ly_auth_container.setVisibility(View.GONE);
+
+            OcrData ocrData = OcrData.getOcrResult();
+
+            if (ocrData != null) {
+                TextView textView = findViewById(R.id.tv_value);
+                textView.setText(ocrData.getFrontData().getOcr_data().get(0).getKey_data());
+
+                final Bitmap frontBitmap = ocrData.getFrontimage();
+                if (frontBitmap != null && !frontBitmap.isRecycled()) iv_frontside.setImageBitmap(frontBitmap);
+                else ly_front.setVisibility(View.GONE);
+            }
+
         } else if (RecogType.detachFrom(getIntent()) == RecogType.PDF417) {
             // RecogType.PDF417
             PDF417Data pdf417Data = PDF417Data.getPDF417Result();
@@ -149,6 +159,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         //initialize the UI
         ivUserProfile = findViewById(R.id.ivUserProfile);
         ivUserProfile2 = findViewById(R.id.ivUserProfile2);
+        loutImg = findViewById(R.id.lyt_img_cover);
         loutImg2 = findViewById(R.id.lyt_img_cover2);
         tvLivenessScore = findViewById(R.id.tvLivenessScore);
         tvFaceMatchScore = findViewById(R.id.tvFaceMatchScore);
@@ -166,13 +177,17 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         back_table_layout = findViewById(R.id.back_table_layout);
         pdf417_table_layout = findViewById(R.id.pdf417_table_layout);
         usdl_table_layout = findViewById(R.id.usdl_table_layout);
+        bank_table_layout = findViewById(R.id.bank_table_layout);
 
+        ly_auth_container = findViewById(R.id.layout_button_auth);
         ly_mrz_container = findViewById(R.id.ly_mrz_container);
         ly_front_container = findViewById(R.id.ly_front_container);
         ly_back_container = findViewById(R.id.ly_back_container);
         ly_security_container = findViewById(R.id.ly_security_container);
         ly_pdf417_container = findViewById(R.id.ly_pdf417_container);
         ly_usdl_container = findViewById(R.id.ly_usdl_container);
+        dl_plate_lout = findViewById(R.id.dl_plate_lout);
+        ly_bank_container = findViewById(R.id.ly_bank_container);
 
         tvFaceMatchScore.setVisibility(View.GONE);
         tvLivenessScore.setVisibility(View.GONE);
@@ -182,6 +197,8 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         ly_mrz_container.setVisibility(View.GONE);
         ly_pdf417_container.setVisibility(View.GONE);
         ly_usdl_container.setVisibility(View.GONE);
+        dl_plate_lout.setVisibility(View.GONE);
+        ly_bank_container.setVisibility(View.GONE);
     }
 
     private void setOcrData(OcrData ocrData) {
@@ -211,60 +228,68 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         OcrData.MapData frontData = ocrData.getFrontData();
         OcrData.MapData backData = ocrData.getBackData();
 
+        if (face1 == null && ocrData.getFaceImage() != null && !ocrData.getFaceImage().isRecycled()) {
+            face1 = ocrData.getFaceImage();
+        }
+
         if (frontData != null) {
             ly_front_container.setVisibility(View.VISIBLE);
-            for (int i = 0; i < frontData.getOcr_data().size(); i++) {
+            try {
+                for (int i = 0; i < frontData.getOcr_data().size(); i++) {
 
-                final OcrData.MapData.ScannedData scannedData = frontData.getOcr_data().get(i);
+                    final OcrData.MapData.ScannedData scannedData = frontData.getOcr_data().get(i);
 
-                if (scannedData != null) {
-                    final int data_type = scannedData.getType();
-                    final String key = scannedData.getKey();
-                    final String value = scannedData.getKey_data();
+                    if (scannedData != null) {
+                        final int data_type = scannedData.getType();
+                        final String key = scannedData.getKey();
+                        final String value = scannedData.getKey_data();
 
-                    final View layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
-                    final TextView tv_key = layout.findViewById(R.id.tv_key);
-                    final TextView tv_value = layout.findViewById(R.id.tv_value);
-                    final ImageView imageView = layout.findViewById(R.id.iv_image);
-                    if (data_type == 1) {
-                        if (!key.toLowerCase().contains("mrz")) {
+                        final View layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+                        final TextView tv_key = layout.findViewById(R.id.tv_key);
+                        final TextView tv_value = layout.findViewById(R.id.tv_value);
+                        final ImageView imageView = layout.findViewById(R.id.iv_image);
+                        if (data_type == 1) {
+                            if (!key.toLowerCase().contains("mrz")) {
+                                if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
+                                    tv_key.setText(key);
+                                    tv_value.setText(value);
+                                    imageView.setVisibility(View.GONE);
+                                    front_table_layout.addView(layout);
+                                }
+                            } else if (key.toLowerCase().contains("mrz")) {
+                                setMRZData(ocrData.getMrzData());
+                            }
+                        } else if (data_type == 2) {
                             if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
-                                tv_key.setText(key);
+                                try {
+                                    if (key.toLowerCase().contains("face")) {
+    //                                    if (face1 == null) {
+    //                                        face1 = scannedData.getImage();
+    //                                    }
+                                    } else {
+                                        tv_key.setText(key);
+                                        Bitmap myBitmap = scannedData.getImage();
+                                        if (myBitmap != null) {
+                                            imageView.setImageBitmap(myBitmap);
+                                            tv_value.setVisibility(View.GONE);
+                                            front_table_layout.addView(layout);
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
                                 tv_value.setText(value);
                                 imageView.setVisibility(View.GONE);
                                 front_table_layout.addView(layout);
                             }
-                        } else if (key.toLowerCase().contains("mrz")) {
-                            setMRZData(ocrData.getMrzData());
+                        } else if (data_type == 3) {
+                            updateSecurityLayout(value);
                         }
-                    } else if (data_type == 2) {
-                        if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
-                            try {
-                                if (key.toLowerCase().contains("face")) {
-                                    if (face1 == null) {
-                                        face1 = scannedData.getImage();
-                                    }
-                                } else {
-                                    tv_key.setText(key);
-                                    Bitmap myBitmap = scannedData.getImage();
-                                    if (myBitmap != null) {
-                                        imageView.setImageBitmap(myBitmap);
-                                        tv_value.setVisibility(View.GONE);
-                                        front_table_layout.addView(layout);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            tv_value.setText(value);
-                            imageView.setVisibility(View.GONE);
-                            front_table_layout.addView(layout);
-                        }
-                    } else if (data_type == 3) {
-                        updateSecurityLayout(value);
                     }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             final Bitmap frontBitmap = ocrData.getFrontimage();
             if (frontBitmap != null && !frontBitmap.isRecycled()) {
@@ -276,52 +301,56 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         }
         if (backData != null) {
             ly_back_container.setVisibility(View.VISIBLE);
-            for (int i = 0; i < backData.getOcr_data().size(); i++) {
-                View layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
-                TextView tv_key = layout.findViewById(R.id.tv_key);
-                TextView tv_value = layout.findViewById(R.id.tv_value);
-                ImageView imageView = layout.findViewById(R.id.iv_image);
-                final OcrData.MapData.ScannedData scannedData = backData.getOcr_data().get(i);
+            try {
+                for (int i = 0; i < backData.getOcr_data().size(); i++) {
+                    View layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+                    TextView tv_key = layout.findViewById(R.id.tv_key);
+                    TextView tv_value = layout.findViewById(R.id.tv_value);
+                    ImageView imageView = layout.findViewById(R.id.iv_image);
+                    final OcrData.MapData.ScannedData scannedData = backData.getOcr_data().get(i);
 
-                if (scannedData != null) {
-                    int data_type = scannedData.getType();
-                    String key = scannedData.getKey();
-                    final String value = scannedData.getKey_data();
-                    if (data_type == 1) {
-                        if (!key.equalsIgnoreCase("mrz")) {
+                    if (scannedData != null) {
+                        int data_type = scannedData.getType();
+                        String key = scannedData.getKey();
+                        final String value = scannedData.getKey_data();
+                        if (data_type == 1) {
+                            if (!key.equalsIgnoreCase("mrz")) {
+                                if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
+                                    tv_key.setText(key + ":");
+                                    tv_value.setText(value);
+                                    imageView.setVisibility(View.GONE);
+                                    back_table_layout.addView(layout);
+                                }
+                            } else {
+                                setMRZData(ocrData.getMrzData());
+                            }
+                        } else if (data_type == 2) {
                             if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
-                                tv_key.setText(key + ":");
+                                try {
+                                    tv_key.setText(key + ":");
+                                    Bitmap myBitmap = scannedData.getImage();
+                                    if (myBitmap != null) {
+                                        imageView.setImageBitmap(myBitmap);
+                                        tv_value.setVisibility(View.GONE);
+                                        back_table_layout.addView(layout);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
                                 tv_value.setText(value);
                                 imageView.setVisibility(View.GONE);
                                 back_table_layout.addView(layout);
-                            }
-                        } else {
-                            setMRZData(ocrData.getMrzData());
-                        }
-                    } else if (data_type == 2) {
-                        if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
-                            try {
-                                tv_key.setText(key + ":");
-                                Bitmap myBitmap = scannedData.getImage();
-                                if (myBitmap != null) {
-                                    imageView.setImageBitmap(myBitmap);
-                                    tv_value.setVisibility(View.GONE);
-                                    back_table_layout.addView(layout);
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            tv_value.setText(value);
-                            imageView.setVisibility(View.GONE);
-                            back_table_layout.addView(layout);
 
+                            }
+                        } else if (data_type == 3) {
+                            updateSecurityLayout(value);
                         }
-                    } else if (data_type == 3) {
-                        updateSecurityLayout(value);
+
                     }
-
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             final Bitmap BackImage = ocrData.getBackimage();
             if (BackImage != null && !BackImage.isRecycled()) {
@@ -346,27 +375,56 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         ly_security_container.setVisibility(View.VISIBLE);
     }
 
+    private void setBankData(CardDetails bankData){
+        if (bankData == null) return;
+        ly_bank_container.setVisibility(View.VISIBLE);
+//        addBankLayout("Owner", bankData.getOwner());
+        addBankLayout("Card Type", bankData.getCardType());
+        addBankLayout("Number", bankData.getNumber());
+        addBankLayout("Expiry Month", bankData.getExpirationMonth());
+        addBankLayout("Expiry Year", bankData.getExpirationYear());
+    }
+
+    private void addBankLayout(String key, String s) {
+        if (TextUtils.isEmpty(s)) return;
+        View layout1 = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+        TextView tv_key1 = layout1.findViewById(R.id.tv_key);
+        TextView tv_value1 = layout1.findViewById(R.id.tv_value);
+        tv_key1.setText(key);
+        tv_value1.setText(s);
+        bank_table_layout.addView(layout1);
+    }
+
     private void setMRZData(RecogResult recogResult) {
 
         ly_mrz_container.setVisibility(View.VISIBLE);
-        addLayout("MRZ", recogResult.lines);
-        addLayout("Document Type", recogResult.docType);
-        addLayout("First Name", recogResult.givenname);
-        addLayout("Last Name", recogResult.surname);
-        addLayout("Document No.", recogResult.docnumber);
-        addLayout("Document check No.", recogResult.docchecksum);
-        addLayout("Country", recogResult.country);
-        addLayout("Nationality", recogResult.nationality);
-        addLayout("Sex", recogResult.sex);
-        addLayout("Date of Birth", recogResult.birth);
-        addLayout("Birth Check No.", recogResult.birthchecksum);
-        addLayout("Date of Expiry", recogResult.expirationdate);
-        addLayout("Expiration Check No.", recogResult.expirationchecksum);
-        addLayout("Date Of Issue", recogResult.issuedate);
-        addLayout("Department No.", recogResult.departmentnumber);
-        addLayout("Other ID", recogResult.otherid);
-        addLayout("Other ID Check", recogResult.otheridchecksum);
-        addLayout("Second Row Check No.", recogResult.secondrowchecksum);
+        try {
+            addLayout("MRZ", recogResult.lines);
+            addLayout("Document Type", recogResult.docType);
+            addLayout("First Name", recogResult.givenname);
+            addLayout("Last Name", recogResult.surname);
+            addLayout("Document No.", recogResult.docnumber);
+            addLayout("Document check No.", recogResult.docchecksum);
+            addLayout("Correct Document check No.", recogResult.correctdocchecksum);
+            addLayout("Country", recogResult.country);
+            addLayout("Nationality", recogResult.nationality);
+            String s = (recogResult.sex.equals("M")) ? "Male" : ((recogResult.sex.equals("F")) ? "Female" : recogResult.sex);
+            addLayout("Sex", s);
+            addLayout("Date of Birth", recogResult.birth);
+            addLayout("Birth Check No.", recogResult.birthchecksum);
+            addLayout("Correct Birth Check No.", recogResult.correctbirthchecksum);
+            addLayout("Date of Expiry", recogResult.expirationdate);
+            addLayout("Expiration Check No.", recogResult.expirationchecksum);
+            addLayout("Correct Expiration Check No.", recogResult.correctexpirationchecksum);
+            addLayout("Date Of Issue", recogResult.issuedate);
+            addLayout("Department No.", recogResult.departmentnumber);
+            addLayout("Other ID", recogResult.otherid);
+            addLayout("Other ID Check", recogResult.otheridchecksum);
+            addLayout("Second Row Check No.", recogResult.secondrowchecksum);
+            addLayout("Correct Second Row Check No.", recogResult.correctsecondrowchecksum);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void addLayout(String key, String s) {
@@ -502,124 +560,35 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     @Override
     protected void onStart() {
         super.onStart();
-        initializeZoom(); ///initialize of zooming
     }
 
-    private void initializeZoom() {
-        // Visit https://dev.zoomlogin.com/zoomsdk/#/account to retrieve your app token
-        // Replace BuildConfig.ZOOM_APP_TOKEN below with your app token
-
-        ZoomSDK.setFacemapEncryptionKey(ZoomConnectedConfig.PublicKey);
-        ZoomSDK.initialize(
-                this,
-                ZoomConnectedConfig.AppToken,
-                mInitializeCallback
-        );
-
-        // preload sdk resources so the UI is snappy (optional)
-        ZoomSDK.preload(this);
-
-        // Signal to the ZoOm SDK that audit trail should be captured
-        ZoomSDK.setAuditTrailType(ZoomAuditTrailType.HEIGHT_640);
-
-        // Signal to ZoOm to also capture time-based session images which can be used in addition to ZoOm Audit Trail per our documentation.
-        ZoomSDK.setTimeBasedSessionImagesEnabled(true);
-
-        ZoomCustomization currentCustomization = new ZoomCustomization();
-        ZoomConnectedConfig.currentCustomization = ZoomConnectedConfig.ZoomConnectedCustomization();
-        ZoomSDK.setCustomization(currentCustomization);
-    }
-
-    public void launchZoomScanScreen() {
-        ZoomSDKStatus status = ZoomSDK.getStatus(this);
-        if (status != ZoomSDKStatus.INITIALIZED) {
-            Log.w("ScanResult", "Launch Error Unable to launch ZoOm.\nReason: " + status.toString());
-            return;
-        }
-
-        // only set this if settings have not been changed
-        if (ZoomConnectedConfig.shouldSetIdealFrameSizeRatio) {
-            ZoomConnectedConfig.setIdealFrameSizeRatio(this, getWindow().getDecorView().getWidth());
-        }
-
-        if (ZoomConnectedConfig.shouldCenterZoomFrame && !ZoomConnectedConfig.isTablet(this)) {
-            ZoomConnectedConfig.centerZoomFrame(getWindow().getDecorView().getWidth(), findViewById(R.id.llMain).getHeight());
-        }
-
-        // set customization
-        ZoomConnectedConfig.currentCustomization.setCancelButtonCustomization(ZoomConnectedConfig.zoomCancelButtonCustomization);
-        ZoomConnectedConfig.currentCustomization.setOvalCustomization(ZoomConnectedConfig.zoomOvalCustomization);
-        ZoomConnectedConfig.currentCustomization.setFrameCustomization(ZoomConnectedConfig.zoomFrameCustomization);
-        ZoomConnectedConfig.currentCustomization.setFrameCustomization(ZoomConnectedConfig.zoomFrameCustomization);
-        ZoomConnectedConfig.currentCustomization.showPreEnrollmentScreen = false;
-        ZoomSDK.setCustomization(ZoomConnectedConfig.currentCustomization);
-
-        // Developer Note:
-        // This code hides all the app content and only show the branding logo right before launching ZoOm.
-        // However, developers may choose a number of strategies instead of this behavior.
-        // For instance, a developer may choose to put a fullscreen semi-transparent view over the screen
-        // before launching ZoOm so their full app is visible in the background but ZoOm is exposed on top of it.
-        // The options are endless and full control is given to the developer for how ZoOm looks on top of their app.
-
-        Intent authenticationIntent = new Intent(this, ZoomVerificationActivity.class);
-        startActivityForResult(authenticationIntent, ZoomSDK.REQUEST_CODE_VERIFICATION);
-    }
-
-    public void handleVerificationSuccessResult(final ZoomVerificationResult successResult) {
-        // retrieve the ZoOm facemap as byte[]
-        if (successResult.getFaceMetrics() != null) {
-            showProgressDialog();
+    public void handleVerificationSuccessResult(final AccuraVerificationResult result) {
+        if (result != null) {
+//            showProgressDialog();
             Runnable runnable = new Runnable() {
                 public void run() {
+
                     faceHelper.setInputImage(face1);
 
-                    // this is the raw biometric data which can be uploaded, or may be
-                    // base64 encoded in order to handle easier at the cost of processing and network usage
-//            bytes = successResult.getFaceMetrics().getZoomFacemap();
-                    Bitmap face2 = null;
-                    if (!successResult.getFaceMetrics().getAuditTrail().isEmpty()) {
-                        face2 = successResult.getFaceMetrics().getAuditTrail().get(0).copy(Bitmap.Config.ARGB_8888, true);
+                    if (result.getFaceBiometrics() != null) {
+                        if (result.getLivenessResult() == null) {
+                            return;
+                        }
+                        if (result.getLivenessResult().getLivenessStatus()) {
+                            Bitmap face2 = result.getFaceBiometrics();
+                            Glide.with(OcrResultActivity.this).load(face2).centerCrop().into(ivUserProfile2);
+                            if (face2 != null) {
+                                faceHelper.setMatchImage(face2);
+                            }
+                            setLivenessData(result.getLivenessResult().getLivenessScore() * 100 + "");
+                        }
                     }
 
-                    if (face2 != null) {
-                        faceHelper.setMatchImage(face2);
-                    }
 
-                    liveness(successResult);
                 }
             };
             new Handler().postDelayed(runnable, 100);
         }
-    }
-
-    //checking liveness data
-    private void liveness(final ZoomVerificationResult zoomVerificationResult) {
-        showProgressDialog();
-        byte[] zoomFacemap = zoomVerificationResult.getFaceMetrics().getZoomFacemap();
-        zoomConnectedAPI.checkLiveness(zoomFacemap, zoomVerificationResult.getSessionId(), new ZoomConnectedAPI.Callback() {
-            @Override
-            public void completion(final boolean completed, final String message, final JSONObject data) {
-                dismissProgressDialog();
-                final ParsedResponse p = HandleResponse.responseLiveness(OcrResultActivity.this, data.toString());
-                if (!p.error) {
-                    final LivenessData livenessData = (LivenessData) p.o;
-                    if (!livenessData.livenessResult.equalsIgnoreCase("undetermined")) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                //Liveness complete successfully
-//                                ageCheck(zoomVerificationResult);
-                                setLivenessData(livenessData);  //setting liveness data
-                            }
-                        });
-                    } else {
-                        displayRetryAlert("Something went wrong with Liveness Check. Please try again");
-                    }
-                } else {
-                    displayRetryAlert("Something went wrong with Liveness Check. Please try again");
-                }
-            }
-        });
     }
 
     private void displayRetryAlert(final String msg) {
@@ -637,9 +606,9 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     }
 
     //method for setting liveness data
-    //parameter to pass : Livenessdata
-    private void setLivenessData(LivenessData livenessData) {
-        tvLivenessScore.setText(String.format(getString(R.string.score_formate), Float.parseFloat(livenessData.livenessScore.replace(",", ""))));
+    //parameter to pass : livenessScore
+    private void setLivenessData(String livenessScore) {
+        tvLivenessScore.setText(String.format("%s %%", livenessScore.length() > 5 ? livenessScore.substring(0, 5) : livenessScore));
         tvLivenessScore.setVisibility(View.VISIBLE);
         tvFaceMatchScore.setVisibility(View.VISIBLE);
     }
@@ -648,27 +617,20 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            if (requestCode == ZoomSDK.REQUEST_CODE_VERIFICATION) {
-                ZoomVerificationResult result = data.getParcelableExtra(ZoomSDK.EXTRA_VERIFY_RESULTS);
-
-                // CASE: you did not set a public key before attempting to retrieve a facemap.
-                // Retrieving facemaps requires that you generate a public/private key pair per the instructions at https://dev.zoomlogin.com/zoomsdk/#/zoom-server-guide
-                if (result.getStatus() == ZoomVerificationStatus.ENCRYPTION_KEY_INVALID) {
-                    AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-                    alertDialog.setTitle(getString(R.string.public_key_not_set));
-                    alertDialog.setMessage(getString(R.string.key_not_set));
-                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                    alertDialog.show();
-                } else if (result.getStatus() == ZoomVerificationStatus.USER_PROCESSED_SUCCESSFULLY) {
-                    handleVerificationSuccessResult(result);
+            if (requestCode == ACCURA_LIVENESS_CAMERA && data != null) {
+                AccuraVerificationResult result = data.getParcelableExtra("Accura.liveness");
+                if (result == null) {
+                    return;
                 }
-            } else if (requestCode == 101) {
-                faceHelper.setInputImage(face1);
+                if (result.getStatus().equals("1")) {
+                    handleVerificationSuccessResult(result);
+                } else {
+                    Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
+                }
+            } else if (requestCode == 102) {
+                if (faceHelper!=null && face1 != null) {
+                    faceHelper.setInputImage(face1);
+                }
                 File f = new File(Environment.getExternalStorageDirectory().toString());
                 File ttt = null;
                 for (File temp : f.listFiles()) {
@@ -699,6 +661,38 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     @Override
     public void onBackPressed() {
 
+        //<editor-fold desc="To resolve memory leak">
+        if ((RecogType.detachFrom(getIntent()) == RecogType.OCR || RecogType.detachFrom(getIntent()) == RecogType.DL_PLATE) && OcrData.getOcrResult() != null) {
+            try {
+                OcrData.getOcrResult().getFrontimage().recycle();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                OcrData.getOcrResult().getBackimage().recycle();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                OcrData.getOcrResult().getFaceImage().recycle();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else if (RecogType.detachFrom(getIntent()) == RecogType.MRZ && RecogResult.getRecogResult() != null) {
+            try {
+                RecogResult.getRecogResult().docFrontBitmap.recycle();
+                RecogResult.getRecogResult().faceBitmap.recycle();
+                RecogResult.getRecogResult().docBackBitmap.recycle();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else if (RecogType.detachFrom(getIntent()) == RecogType.PDF417 && PDF417Data.getPDF417Result() != null) {
+            PDF417Data.getPDF417Result().faceBitmap.recycle();
+            PDF417Data.getPDF417Result().docFrontBitmap.recycle();
+            PDF417Data.getPDF417Result().docBackBitmap.recycle();
+        }
+        //</editor-fold>
+
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -727,7 +721,29 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
 
     private void performClick(boolean isFaceMatch, boolean isLiveness) {
         if (isFaceMatch) openCamera();
-        else if (isLiveness) launchZoomScanScreen();
+        else if (isLiveness) openLivenessCamera();
+    }
+
+    private void openLivenessCamera() {
+        LivenessCustomization livenessCustomization = new LivenessCustomization();
+
+        livenessCustomization.backGroundColor = getResources().getColor(R.color.livenessBackground);
+        livenessCustomization.closeIconColor = getResources().getColor(R.color.livenessCloseIcon);
+        livenessCustomization.feedbackBackGroundColor = getResources().getColor(R.color.livenessfeedbackBg);
+        livenessCustomization.feedbackTextColor = getResources().getColor(R.color.livenessfeedbackText);
+        livenessCustomization.feedbackTextSize = 18;
+        livenessCustomization.feedBackframeMessage = "Frame Your Face";
+        livenessCustomization.feedBackAwayMessage = "Move Phone Away";
+        livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
+        livenessCustomization.feedBackCloserMessage = "Move Phone Closer";
+        livenessCustomization.feedBackCenterMessage = "Center Your Face";
+        livenessCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
+        livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
+        livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
+        livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+
+        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url");
+        startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
     private void openCamera() {
@@ -747,7 +763,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
         }
         intent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
-        startActivityForResult(intent, 101);
+        startActivityForResult(intent, 102);
 
     }
 
