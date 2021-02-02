@@ -436,15 +436,14 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 ## 2. Setup Accura Face Match
 * Require `accuraface.license` to implement AccuraFaceMatch SDK in to your app
 
-#### Part 1 : Open auto capture camera  
-
 #### Step 1 : Add following code in Manifest.
     <manifest>
         ...
         <uses-permission android:name="android.permission.CAMERA" />
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     </manifest>
-    
-    
+
+#### Step 2 : Open auto capture camera
     FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
     
     cameraScreenCustomization.backGroundColor = getResources().getColor(R.color.fm_camera_Background);
@@ -486,18 +485,7 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
         }
     }
 
-#### Part 2 : Implement Face match
-
-#### Step 1 : Simple Usage to face match in your app.
-
-    // Just add FaceMatchActivity to your manifest:
-    <activity android:name="com.accurascan.facematch.ui.FaceMatchActivity"/>
-
-    // Start Intent to open activity
-    Intent intent = new Intent(this, FaceMatchActivity.class);
-    startActivity(intent);
-
-#### Step 2 : Implement face match code manually to your activity.
+#### Step 3 : Implement face match code manually to your activity.
 
     Important Grant Camera and storage Permission.
 
@@ -572,6 +560,15 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     }
 
     And take a look ActivityFaceMatch.java for full working example.
+    
+#### Step 4 : Simple Usage to face match in your app.
+
+    // Just add FaceMatchActivity to your manifest:
+    <activity android:name="com.accurascan.facematch.ui.FaceMatchActivity"/>
+
+    // Start Intent to open activity
+    Intent intent = new Intent(this, FaceMatchActivity.class);
+    startActivity(intent);
 
 ## 3. Liveness Check
 
