@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorPrimaryDark">#AC0D18</color>
 
     <color name="colorPrimary">#D32D39</color>
     <color name="colorAccent">#D32D39</color>
@@ -22,4 +22,10 @@
     <color name="livenessCloseIcon">#FF000000</color>
     <color name="livenessfeedbackBg">#00000000</color>
     <color name="livenessfeedbackText">#FF000000</color>
+
+    // Accura Fm auto capture camera
+    <color name="fm_camera_Background">#FFC4C4C5</color>
+    <color name="fm_camera_CloseIcon">#FF000000</color>
+    <color name="fm_camera_feedbackBg">#00000000</color>
+    <color name="fm_camera_feedbackText">#FF000000</color>
 </resources>

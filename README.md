@@ -51,9 +51,9 @@ Below steps to setup Accura SDK's to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:2.0.1'
+        implementation 'com.github.accurascan:AccuraOCR:2.0.2'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:1.0'
+        implementation 'com.github.accurascan:AccuraFaceMatch:2.0'
         // for liveness
 		implementation 'com.github.accurascan:Liveness-Android:1.1.1'
     }
@@ -145,11 +145,17 @@ Below steps to setup Accura SDK's to your project.
 #### Step 2 : Set CameraView
 ```
 Must have to extend com.accurascan.ocr.mrz.motiondetection.SensorsActivity to your activity.
+- Make sure your activity orientation locked from Manifest. Because auto rotate not support.
 
 private CameraView cameraView;
 
 @Override
 public void onCreate(Bundle savedInstanceState) {
+    if (isPortrait) {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // to set portarait mode
+    } else {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); // to set landscape mode
+    }
     super.onCreate(savedInstanceState);
     setTheme(R.style.AppThemeNoActionBar);
     setContentView(R.layout.your layout);
@@ -428,17 +434,58 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 ```
 
 ## 2. Setup Accura Face Match
-* Require `accuraface.license` to implement Accura Face Match in to your app
-#### Step 1 : Simple Usage to face match in your app.
+* Require `accuraface.license` to implement AccuraFaceMatch SDK in to your app
 
-    // Just add FaceMatchActivity to your manifest:
-    <activity android:name="com.accurascan.facematch.ui.FaceMatchActivity"/>
+#### Step 1 : Add following code in Manifest.
+    <manifest>
+        ...
+        <uses-permission android:name="android.permission.CAMERA" />
+        <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    </manifest>
 
-    // Start Intent to open activity
-    Intent intent = new Intent(this, FaceMatchActivity.class);
-    startActivity(intent);
+#### Step 2 : Open auto capture camera
+    FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
+    
+    cameraScreenCustomization.backGroundColor = getResources().getColor(R.color.fm_camera_Background);
+    cameraScreenCustomization.closeIconColor = getResources().getColor(R.color.fm_camera_CloseIcon);
+    cameraScreenCustomization.feedbackBackGroundColor = getResources().getColor(R.color.fm_camera_feedbackBg);
+    cameraScreenCustomization.feedbackTextColor = getResources().getColor(R.color.fm_camera_feedbackText);
+    cameraScreenCustomization.feedbackTextSize = 18;
+    cameraScreenCustomization.feedBackframeMessage = "Frame Your Face";
+    cameraScreenCustomization.feedBackAwayMessage = "Move Phone Away";
+    cameraScreenCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
+    cameraScreenCustomization.feedBackCloserMessage = "Move Phone Closer";
+    cameraScreenCustomization.feedBackCenterMessage = "Center Your Face";
+    cameraScreenCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
+    cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
+    cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
+    cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+    
+    Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
+    startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
+    
+    // Handle accura fm camera result.
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == ACCURA_LIVENESS_CAMERA && data != null) {
+                AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
+                if (result == null) {
+                    return;
+                }
+                if (result.getStatus().equals("1")) {
+                    // result bitmap
+                    Bitmap bitmap = result.getFaceBiometrics();
+                    Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Failed" + result.getStatus(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 
-#### Step 2 : Implement face match code manually to your activity.
+#### Step 3 : Implement face match code manually to your activity.
 
     Important Grant Camera and storage Permission.
 
@@ -513,6 +560,15 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     }
 
     And take a look ActivityFaceMatch.java for full working example.
+    
+#### Step 4 : Simple Usage to face match in your app.
+
+    // Just add FaceMatchActivity to your manifest:
+    <activity android:name="com.accurascan.facematch.ui.FaceMatchActivity"/>
+
+    // Start Intent to open activity
+    Intent intent = new Intent(this, FaceMatchActivity.class);
+    startActivity(intent);
 
 ## 3. Liveness Check
 

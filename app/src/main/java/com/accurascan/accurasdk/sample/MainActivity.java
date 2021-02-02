@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,9 +14,14 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -182,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 RecogType.MRZ.attachTo(intent);
                 MRZDocumentType.NONE.attachTo(intent);
                 intent.putExtra("card_name", getResources().getString(R.string.other_mrz));
+                intent.putExtra("app_orientation", getRequestedOrientation());
                 startActivity(intent);
                 overridePendingTransition(0, 0);
             }
@@ -197,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
                 RecogType.MRZ.attachTo(intent);
                 MRZDocumentType.PASSPORT_MRZ.attachTo(intent);
                 intent.putExtra("card_name", getResources().getString(R.string.passport_mrz));
+                intent.putExtra("app_orientation", getRequestedOrientation());
                 startActivity(intent);
                 overridePendingTransition(0, 0);
             }
@@ -208,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
                 RecogType.MRZ.attachTo(intent);
                 MRZDocumentType.ID_CARD_MRZ.attachTo(intent);
                 intent.putExtra("card_name", getResources().getString(R.string.id_mrz));
+                intent.putExtra("app_orientation", getRequestedOrientation());
                 startActivity(intent);
                 overridePendingTransition(0, 0);
             }
@@ -219,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
                 RecogType.MRZ.attachTo(intent);
                 MRZDocumentType.VISA_MRZ.attachTo(intent);
                 intent.putExtra("card_name", getResources().getString(R.string.visa_mrz));
+                intent.putExtra("app_orientation", getRequestedOrientation());
                 startActivity(intent);
                 overridePendingTransition(0, 0);
             }
@@ -231,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, OcrActivity.class);
                 RecogType.BANKCARD.attachTo(intent);
                 intent.putExtra("card_name", getResources().getString(R.string.bank_card));
+                intent.putExtra("app_orientation", getRequestedOrientation());
                 startActivity(intent);
                 overridePendingTransition(0, 0);
             }
@@ -301,14 +313,54 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_land_port, menu);
+        Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        final int orientation = display.getOrientation();
+        MenuItem item = menu.findItem(R.id.item_land_port);
+        switch (orientation) {
+            case Configuration.ORIENTATION_PORTRAIT:
+                item.setTitle("Portrait");
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                break;
+            case Configuration.ORIENTATION_LANDSCAPE:
+                item.setTitle("Portrait");
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        if (!isContinue){
+//            return super.onOptionsItemSelected(item);
+//        }
+        if (item.getItemId() == R.id.item_land_port) {
+
+            if (item.getTitle().toString().toLowerCase().equals("landscape")) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                item.setTitle("Portrait");
+            } else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                item.setTitle("Landscape");
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     public void doWork() {
         printLog();  // Create Log file
         progressBar = new ProgressDialog(this);
         progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressBar.setMessage("Please wait...");
         progressBar.setCancelable(false);
-        progressBar.show();
-        nativeThread.start();
+        if (!isFinishing()) {
+            progressBar.show();
+            nativeThread.start();
+        }
     }
 
     public class CardListAdpter extends RecyclerView.Adapter {
@@ -364,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
                         if (cardModel.getCard_type() == 1) RecogType.PDF417.attachTo(intent);
                         else if (cardModel.getCard_type() == 2) RecogType.DL_PLATE.attachTo(intent);
                         else RecogType.OCR.attachTo(intent);
-
+                        intent.putExtra("app_orientation", getRequestedOrientation());
                         startActivity(intent);
                         overridePendingTransition(0, 0);
                     }

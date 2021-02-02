@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ocr_frame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:visibility="gone">
+
+    <View
+        android:id="@+id/view_left_frame"
+        tools:layout_conversion_absoluteHeight="731dp"
+        tools:layout_conversion_absoluteWidth="157dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:background="@color/trans_black"
+        app:layout_constraintEnd_toStartOf="@id/border_frame"
+        app:layout_constraintTop_toTopOf="@id/border_frame" />
+
+    <View
+        android:id="@+id/view_right_frame"
+        tools:layout_conversion_absoluteHeight="731dp"
+        tools:layout_conversion_absoluteWidth="157dp"
+        tools:layout_editor_absoluteX="254dp"
+        tools:layout_editor_absoluteY="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="400dp"
+        android:background="@color/trans_black"
+        app:layout_constraintStart_toEndOf="@+id/border_frame"
+        app:layout_constraintTop_toTopOf="@id/border_frame" />
+
+    <RelativeLayout
+        android:id="@+id/view_top_frame"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:background="@color/trans_black"
+        app:layout_constraintBottom_toTopOf="@id/border_frame"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="@string/scan_front"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/view_bottom_frame"
+        tools:layout_conversion_absoluteHeight="28dp"
+        tools:layout_conversion_absoluteWidth="411dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="703dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/trans_black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/border_frame">
+
+        <TextView
+            android:id="@+id/tv_scan_msg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/border_frame"
+        tools:layout_conversion_absoluteHeight="300dp"
+        tools:layout_conversion_absoluteWidth="98dp"
+        tools:layout_editor_absoluteX="157dp"
+        tools:layout_editor_absoluteY="216dp"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/border_red"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/im_flip_image"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/flip"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true">
+
+            <com.accurascan.ocr.mrz.customview.CustomTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Powered By"
+                android:textColor="#DDDDDD"
+                android:layout_gravity="right"
+                android:layout_marginEnd="1dp"
+                android:layout_marginBottom="-1dp"
+                android:textSize="8sp"
+                app:typeface="ALLER_STD_REG"/>
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="15dp"
+                android:src="@drawable/accura_logo"
+                />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

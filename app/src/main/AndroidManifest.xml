@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.accurascan.accurasdk.sample">
 
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -42,11 +45,11 @@
         <activity android:name=".OcrActivity"
             android:label="AccuraOCR"
             android:theme="@style/AppTheme"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="locked"/>
 
         <activity android:name=".OcrResultActivity"
             android:label="Accura OCR"
-            android:screenOrientation="portrait"
+            android:screenOrientation="locked"
             android:theme="@style/AppThemeActionBar"/>
     </application>
 </manifest>

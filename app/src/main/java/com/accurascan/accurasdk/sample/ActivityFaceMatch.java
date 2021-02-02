@@ -10,12 +10,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -25,10 +27,13 @@ import androidx.core.content.FileProvider;
 import com.accurascan.facematch.customview.CustomTextView;
 import com.accurascan.facematch.customview.FaceImageview;
 import com.accurascan.facematch.util.BitmapHelper;
-import com.accurascan.facematch.util.FaceHelper;
 import com.accurascan.facematch.util.Utils;
+import com.facedetection.FMCameraScreenCustomization;
+import com.facedetection.SelfieFMCameraActivity;
+import com.facedetection.model.AccuraFMCameraModel;
 import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
+import com.inet.facelock.callback.FaceHelper;
 
 import java.io.File;
 import java.text.NumberFormat;
@@ -52,11 +57,13 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         super.onCreate(savedInstanceState);
         setContentView(com.accurascan.facematch.R.layout.activity_facematch);
 
-        Toolbar toolbar = findViewById(com.accurascan.facematch.R.id.toolbar);
-        toolbar.setTitleTextColor(Color.WHITE);
-        setSupportActionBar(toolbar);
+        findViewById(com.accurascan.facematch.R.id.ivBack).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         helper = new FaceHelper(this);
         if (Utils.isPermissionsGranted(this)) {
             init();
@@ -82,15 +89,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         findViewById(com.accurascan.facematch.R.id.btnCamera1).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 ind = 1;
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                File f = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
-                Uri uriForFile = FileProvider.getUriForFile(
-                        ActivityFaceMatch.this,
-                        getPackageName() + ".provider",
-                        f
-                );
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
-                startActivityForResult(intent, CAPTURE_IMAGE);
+                openFaceMatchCamera();
             }
         });
 
@@ -109,15 +108,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         findViewById(com.accurascan.facematch.R.id.btnCamera2).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 ind = 2;
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                File f = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
-                Uri uriForFile = FileProvider.getUriForFile(
-                        ActivityFaceMatch.this,
-                        getPackageName() + ".provider",
-                        f
-                );
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
-                startActivityForResult(intent, CAPTURE_IMAGE);
+                openFaceMatchCamera();
             }
         });
 
@@ -164,6 +155,50 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         }
     }
 
+
+    private void openFaceMatchCamera() {
+        FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
+
+        cameraScreenCustomization.backGroundColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_Background);
+        cameraScreenCustomization.closeIconColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_CloseIcon);
+        cameraScreenCustomization.feedbackBackGroundColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_feedbackBg);
+        cameraScreenCustomization.feedbackTextColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_feedbackText);
+        cameraScreenCustomization.feedbackTextSize = 18;
+        cameraScreenCustomization.feedBackframeMessage = "Frame Your Face";
+        cameraScreenCustomization.feedBackAwayMessage = "Move Phone Away";
+        cameraScreenCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
+        cameraScreenCustomization.feedBackCloserMessage = "Move Phone Closer";
+        cameraScreenCustomization.feedBackCenterMessage = "Center Your Face";
+        cameraScreenCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
+        cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
+        cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
+        cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+
+        Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
+        startActivityForResult(intent, CAPTURE_IMAGE);
+    }
+
+    public void handleVerificationSuccessResult(final AccuraFMCameraModel result) {
+        if (result != null) {
+//            showProgressDialog();
+            Runnable runnable = new Runnable() {
+                public void run() {
+
+                    if (result.getFaceBiometrics() != null) {
+                        Bitmap nBmp = result.getFaceBiometrics();
+
+                        if (ind == 1) {
+                            helper.setInputImage(nBmp);
+                        } else if (ind == 2) {
+                            helper.setMatchImage(nBmp);
+                        }
+                    }
+                }
+            };
+            new Handler().postDelayed(runnable, 100);
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -182,28 +217,14 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
                 }
 
             } else if (requestCode == CAPTURE_IMAGE) { // handle request code CAPTURE_IMAGE used for capture image in camera
-                File f = new File(Environment.getExternalStorageDirectory().toString());
-                File ttt = null;
-
-                for (File temp : f.listFiles()) {
-                    if (temp.getName().equals("temp.jpg")) {
-                        ttt = temp;
-                        break;
-                    }
-                }
-                if (ttt == null)
+                AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
+                if (result == null) {
                     return;
-
-                // ind is a integer variable used to handle front side image (Face 1) and bck side image (Face 2) 1= for face1 and 2= for face 2
-                if (ind == 1) {
-                    helper.setInputImage(ttt.getAbsolutePath());
-                } else if (ind == 2) {
-                    helper.setMatchImage(ttt.getAbsolutePath());
                 }
-                try {
-                    ttt.delete();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (result.getStatus().equals("1")) {
+                    handleVerificationSuccessResult(result);
+                } else {
+                    Toast.makeText(this, result.getStatus() + "Retry...", Toast.LENGTH_SHORT).show();
                 }
             }
         }
