@@ -3,6 +3,7 @@ package com.accurascan.accurasdk.sample;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -28,15 +29,18 @@ import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
 import com.accurascan.facematch.util.BitmapHelper;
-import com.accurascan.facematch.util.FaceHelper;
 import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
 import com.accurascan.ocr.mrz.model.RecogResult;
 import com.bumptech.glide.Glide;
 import com.docrecog.scan.RecogType;
+import com.facedetection.FMCameraScreenCustomization;
+import com.facedetection.SelfieFMCameraActivity;
+import com.facedetection.model.AccuraFMCameraModel;
 import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
+import com.inet.facelock.callback.FaceHelper;
 
 import org.json.JSONObject;
 
@@ -46,6 +50,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
 
     Bitmap face1;
     private final int ACCURA_LIVENESS_CAMERA = 101;
+    private final int ACCURA_FACEMATCH_CAMERA = 102;
     TableLayout mrz_table_layout, front_table_layout, back_table_layout, usdl_table_layout, pdf417_table_layout, bank_table_layout;
 
     ImageView ivUserProfile, ivUserProfile2, iv_frontside, iv_backside;
@@ -58,6 +63,11 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     private boolean isFaceMatch = false, isLiveness = false;
 
     protected void onCreate(Bundle savedInstanceState) {
+        if (getIntent().getIntExtra("app_orientation", 1) != 0) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ocr_result);
 
@@ -300,6 +310,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             ly_front_container.setVisibility(View.GONE);
         }
         if (backData != null) {
+            boolean isBackVisible = true;
             ly_back_container.setVisibility(View.VISIBLE);
             try {
                 for (int i = 0; i < backData.getOcr_data().size(); i++) {
@@ -320,11 +331,14 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                                     tv_value.setText(value);
                                     imageView.setVisibility(View.GONE);
                                     back_table_layout.addView(layout);
+                                    isBackVisible = true;
                                 }
                             } else {
+                                if (backData.getOcr_data().size()==1) isBackVisible = false;
                                 setMRZData(ocrData.getMrzData());
                             }
                         } else if (data_type == 2) {
+                            isBackVisible = true;
                             if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase(" ")) {
                                 try {
                                     tv_key.setText(key + ":");
@@ -355,6 +369,10 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             final Bitmap BackImage = ocrData.getBackimage();
             if (BackImage != null && !BackImage.isRecycled()) {
                 iv_backside.setImageBitmap(BackImage);
+            }
+            if (!isBackVisible) {
+                // hice OCR back container if Back side contains only MRZ data
+                ly_back_container.setVisibility(View.GONE);
             }
         } else {
             ly_back.setVisibility(View.GONE);
@@ -591,6 +609,26 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         }
     }
 
+    public void handleVerificationSuccessResult(final AccuraFMCameraModel result) {
+        if (result != null) {
+//            showProgressDialog();
+            Runnable runnable = new Runnable() {
+                public void run() {
+
+                    if (faceHelper!=null && face1 != null) {
+                        faceHelper.setInputImage(face1);
+                    }
+
+                    if (result.getFaceBiometrics() != null) {
+                        Bitmap nBmp = result.getFaceBiometrics();
+                        faceHelper.setMatchImage(nBmp);
+                    }
+                }
+            };
+            new Handler().postDelayed(runnable, 100);
+        }
+    }
+
     private void displayRetryAlert(final String msg) {
         runOnUiThread(new Runnable() {
             @Override
@@ -628,25 +666,14 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                     Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else if (requestCode == 102) {
-                if (faceHelper!=null && face1 != null) {
-                    faceHelper.setInputImage(face1);
-                }
-                File f = new File(Environment.getExternalStorageDirectory().toString());
-                File ttt = null;
-                for (File temp : f.listFiles()) {
-                    if (temp.getName().equals("temp.jpg")) {
-                        ttt = temp;
-                        break;
-                    }
-                }
-                if (ttt == null)
+                AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
+                if (result == null) {
                     return;
-
-                try {
-                    faceHelper.setMatchImage(ttt.getAbsolutePath());
-                    ttt.delete();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                }
+                if (result.getStatus().equals("1")) {
+                    handleVerificationSuccessResult(result);
+                } else {
+                    Toast.makeText(this, result.getStatus() + "Retry...", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -747,23 +774,44 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     }
 
     private void openCamera() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File f = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
-        Uri uriForFile = FileProvider.getUriForFile(
-                OcrResultActivity.this,
-                getPackageName() + ".provider",
-                f
-        );
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            intent.putExtra("android.intent.extras.CAMERA_FACING", android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT);
-            intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
-            intent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
-        } else {
-            intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
-        }
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
-        startActivityForResult(intent, 102);
+        FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
+
+        cameraScreenCustomization.backGroundColor = getResources().getColor(R.color.fm_camera_Background);
+        cameraScreenCustomization.closeIconColor = getResources().getColor(R.color.fm_camera_CloseIcon);
+        cameraScreenCustomization.feedbackBackGroundColor = getResources().getColor(R.color.fm_camera_feedbackBg);
+        cameraScreenCustomization.feedbackTextColor = getResources().getColor(R.color.fm_camera_feedbackText);
+        cameraScreenCustomization.feedbackTextSize = 18;
+        cameraScreenCustomization.feedBackframeMessage = "Frame Your Face";
+        cameraScreenCustomization.feedBackAwayMessage = "Move Phone Away";
+        cameraScreenCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
+        cameraScreenCustomization.feedBackCloserMessage = "Move Phone Closer";
+        cameraScreenCustomization.feedBackCenterMessage = "Center Your Face";
+        cameraScreenCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
+        cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
+        cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
+        cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+
+        Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
+        startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
+
+//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        File f = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
+//        Uri uriForFile = FileProvider.getUriForFile(
+//                OcrResultActivity.this,
+//                getPackageName() + ".provider",
+//                f
+//        );
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+//            intent.putExtra("android.intent.extras.CAMERA_FACING", android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT);
+//            intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
+//            intent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
+//        } else {
+//            intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+//        }
+//        intent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
+//        startActivityForResult(intent, 102);
 
     }
 
