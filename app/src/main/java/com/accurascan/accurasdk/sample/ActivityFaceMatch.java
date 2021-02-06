@@ -195,7 +195,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
                     }
                 }
             };
-            new Handler().postDelayed(runnable, 100);
+            new Handler().postDelayed(runnable, 50);
         }
     }
 
