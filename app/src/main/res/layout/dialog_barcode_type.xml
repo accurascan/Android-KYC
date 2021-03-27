@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:id="@+id/lout_barcode_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:background="@color/colorPrimary">
+        <com.accurascan.ocr.mrz.customview.CustomTextView
+            android:id="@+id/tv_barcode_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/_15dp"
+            android:textColor="@color/white"
+            android:text="Barcode Format"
+            android:textSize="18sp"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/btn_close"
+            app:typeface="ALLER_STD_REG"/>
+        <ImageView
+            android:id="@+id/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_close"
+            android:layout_alignParentEnd="true"
+            android:padding="@dimen/_15dp"
+            android:layout_alignTop="@id/tv_barcode_title"
+            android:layout_alignBottom="@id/tv_barcode_title"/>
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/typelv"
+        android:layout_below="@id/lout_barcode_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>

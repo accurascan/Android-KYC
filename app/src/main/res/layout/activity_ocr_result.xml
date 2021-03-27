@@ -26,6 +26,7 @@
                 android:orientation="vertical">
 
                 <LinearLayout
+                    android:id="@+id/lyt_face_image_container"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -349,14 +350,12 @@
                             android:showDividers="middle">
 
                             <TextView
-                                android:id="@+id/tv_key"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:gravity="start|center"
                                 android:minHeight="40dp"
-                                android:text="NumberPlate : "
-                                android:textAllCaps="true"
+                                android:text="Vehicle Plate : "
                                 android:textColor="@color/grey"
                                 android:textSize="16sp"
                                 android:textStyle="bold|italic" />
@@ -371,6 +370,65 @@
                                 android:minHeight="40dp"
                                 android:paddingStart="20dp"
                                 android:text="123456"
+                                android:textAllCaps="true"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="normal" />
+
+                        </LinearLayout>
+                        <!--<View-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="1dp"-->
+                        <!--android:background="#FFCCCCCC"/>-->
+
+                    </LinearLayout>
+
+                </LinearLayout>
+                <!--Barcode layout-->
+                <LinearLayout
+                    android:id="@+id/barcode_lout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/white"
+                        android:orientation="vertical"
+                        android:weightSum="2">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical"
+                            android:padding="10dp"
+                            android:showDividers="middle">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="start|center"
+                                android:minHeight="40dp"
+                                android:text="Barcode Data : "
+                                android:textColor="@color/grey"
+                                android:textSize="16sp"
+                                android:textStyle="bold|italic" />
+
+                            <TextView
+                                android:id="@+id/tv_barcode_data"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:gravity="start|center"
+                                android:minHeight="40dp"
+                                android:paddingStart="20dp"
+                                android:text=""
                                 android:textAllCaps="true"
                                 android:textColor="#000000"
                                 android:textSize="16sp"

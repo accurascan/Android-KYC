@@ -50,6 +50,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
 
     final private int PICK_IMAGE = 1; // request code of select image from gallery
     final private int CAPTURE_IMAGE = 2; //request code of capture image in camera
+    private static final int ACCURA_FACEMATCH_CAMERA = 3;
     private FaceHelper helper;
 
     @Override
@@ -173,9 +174,11 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
         cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
         cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+        cameraScreenCustomization.setBlurPercentage(80);
+        cameraScreenCustomization.setGlarePercentage(-1, -1);
 
         Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
-        startActivityForResult(intent, CAPTURE_IMAGE);
+        startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
     }
 
     public void handleVerificationSuccessResult(final AccuraFMCameraModel result) {
@@ -199,6 +202,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         }
     }
 
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -216,7 +220,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
                     helper.setMatchImage(uri);
                 }
 
-            } else if (requestCode == CAPTURE_IMAGE) { // handle request code CAPTURE_IMAGE used for capture image in camera
+            } else if (requestCode == ACCURA_FACEMATCH_CAMERA) { // handle request code CAPTURE_IMAGE used for capture image in camera
                 AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
                 if (result == null) {
                     return;
@@ -240,7 +244,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
             layout.removeAllViews();
             layout.addView(image1);
             bImage1 = true;
-        }
+        } else image1.invalidate();
     }
 
     private void SetImageView2() {
@@ -253,7 +257,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
             layout2.removeAllViews();
             layout2.addView(image2);
             bImage2 = true;
-        }
+        } else image2.invalidate();
     }
 
     @Override
@@ -262,6 +266,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         nf.setMaximumFractionDigits(1);
         String ss = nf.format(score);
         txtScore.setText("Match Score : " + ss + " %");
+        Log.e(ActivityFaceMatch.class.getSimpleName(), "onFaceMatch: "+ ss + " %");
     }
 
     @Override
@@ -286,13 +291,17 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     @Override
     public void onLeftDetect(FaceDetectionResult faceResult) {
         if (faceResult != null) {
-            image1.setImage(BitmapHelper.createFromARGB(faceResult.getNewImg(), faceResult.getNewWidth(), faceResult.getNewHeight()));
             image1.setFaceDetectionResult(faceResult);
+            image1.setImage(BitmapHelper.createFromARGB(faceResult.getNewImg(), faceResult.getNewWidth(), faceResult.getNewHeight()));
+            image1.requestLayout();
         } else {
-            image1.setImage(image1.getImage());
-            image1.setFaceDetectionResult(null);
+            if (image1 != null && image1.getImage() != null) {
+                image1.setImage(image1.getImage());
+                image1.setFaceDetectionResult(null);
+            }
 
         }
+        Log.e(ActivityFaceMatch.class.getSimpleName(), "onLeftDetect: ");
         helper.onLeftDetect(faceResult);
     }
 
@@ -300,12 +309,18 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     @Override
     public void onRightDetect(FaceDetectionResult faceResult) {
         if (faceResult != null) {
-            image2.setImage(BitmapHelper.createFromARGB(faceResult.getNewImg(), faceResult.getNewWidth(), faceResult.getNewHeight()));
-            image2.setFaceDetectionResult(faceResult);
+            if (image2 != null) {
+                image2.setFaceDetectionResult(faceResult);
+                image2.setImage(BitmapHelper.createFromARGB(faceResult.getNewImg(), faceResult.getNewWidth(), faceResult.getNewHeight()));
+                image2.requestLayout();
+            }
         } else {
-            image1.setImage(image1.getImage());
-            image2.setFaceDetectionResult(null);
+            if (image2 != null && image2.getImage() != null) {
+                image2.setImage(image2.getImage());
+                image2.setFaceDetectionResult(null);
+            }
         }
+        Log.e(ActivityFaceMatch.class.getSimpleName(), "onRightDetect: ");
         helper.onRightDetect(faceResult);
     }
 
@@ -313,4 +328,11 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     public void onExtractInit(int ret) {
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (helper != null) {
+            helper.closeEngine();
+        }
+    }
 }
