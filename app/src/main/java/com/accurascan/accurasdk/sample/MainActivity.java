@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -29,13 +30,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.accurascan.facedetection.utils.AccuraLivenessLog;
 import com.accurascan.ocr.mrz.model.ContryModel;
 import com.accurascan.ocr.mrz.util.AccuraLog;
-import com.accurascan.ocr.mrz.util.Util;
 import com.docrecog.scan.MRZDocumentType;
 import com.docrecog.scan.RecogEngine;
 import com.docrecog.scan.RecogType;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private ProgressDialog progressBar;
+
     private static class MyHandler extends Handler {
         private final WeakReference<MainActivity> mActivity;
 
@@ -75,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (activity.sdkModel.isBankCardEnable)
                         activity.btnBank.setVisibility(View.VISIBLE);
+                    if (activity.sdkModel.isAllBarcodeEnable)
+                        activity.btnBarcode.setVisibility(View.VISIBLE);
                     if (activity.sdkModel.isOCREnable && activity.modelList != null) {
                         activity.setCountryLayout();
                     }
@@ -106,9 +110,10 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     // doWorkNative();
                     RecogEngine recogEngine = new RecogEngine();
-                    activity.sdkModel = recogEngine.initEngine(activity);
-                    AccuraLog.enableLogs(true);
+                    AccuraLog.enableLogs(true); // make sure to disable logs in release mode
                     AccuraLivenessLog.setDEBUG(true);
+                    recogEngine.setDialog(false); // setDialog(false) To set your custom dialog for license validation
+                    activity.sdkModel = recogEngine.initEngine(activity);
                     AccuraLog.loge(TAG, "Initialized Engine : " + activity.sdkModel.i + " -> " + activity.sdkModel.message);
                     activity.responseMessage = activity.sdkModel.message;
 
@@ -125,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                         recogEngine.isCheckPhotoCopy(activity, false);
                         recogEngine.SetHologramDetection(activity, true);
                         recogEngine.setLowLightTolerance(activity, 39);
-                        recogEngine.setMotionData(activity, 18);
+                        recogEngine.setMotionThreshold(activity, 18);
 
                         activity.handler.sendEmptyMessage(1);
                     } else
@@ -140,15 +145,25 @@ public class MainActivity extends AppCompatActivity {
 
     private Thread nativeThread = new NativeThread(this);
     private RecyclerView rvCountry, rvCards;
+    private LinearLayoutManager lmCountry, lmCard;
     private CardListAdpter countryAdapter, cardAdapter;
     private List<Object> contryList = new ArrayList<>();
     private List<Object> cardList = new ArrayList<>();
     private List<ContryModel> modelList;
     private int selectedPosition = -1;
-    private View btnMrz, btnPassportMrz, btnIdMrz, btnVisaMrz, btnBank, lout_country;
+    private View btnMrz, btnPassportMrz, btnIdMrz, btnVisaMrz, btnBarcode, btnBank, lout_country;
     private RecogEngine.SDKModel sdkModel;
     private String responseMessage;
     private Handler handler = new MyHandler(this);
+    private final String KEY_COUNTRY_VIEW_STATE = "country_state";
+    private final String KEY_COUNTRY_SCROLL_VIEW_STATE = "country_scroll_state";
+    private final String KEY_CARD_VIEW_STATE = "card_state";
+    private final String KEY_VIEW_STATE = "view_state";
+    private final String KEY_POSITION_STATE = "position_state";
+    Parcelable listCountryState, listCardStart;
+    private boolean isCardViewVisible;
+    private int[] position;
+    private NestedScrollView scrollView;
 
     private void setCountryLayout() {
 //        contryList = new ArrayList<>();
@@ -157,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         countryAdapter.notifyDataSetChanged();
         MainActivity.this.rvCountry.setVisibility(View.VISIBLE);
         MainActivity.this.rvCards.setVisibility(View.INVISIBLE);
+        restoreInstantState();
     }
 
     // must have to required storage permission to print logs
@@ -181,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        scrollView = findViewById(R.id.scroll_view);
         btnMrz = findViewById(R.id.lout_mrz);
         btnMrz.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -248,14 +265,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnBarcode = findViewById(R.id.lout_barcode);
+        btnBarcode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, OcrActivity.class);
+                RecogType.BARCODE.attachTo(intent);
+                intent.putExtra("card_name", "Barcode");
+                intent.putExtra("app_orientation", getRequestedOrientation());
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            }
+        });
+
         lout_country = findViewById(R.id.lout_country);
         rvCountry = findViewById(R.id.rv_country);
-        rvCountry.setLayoutManager(new LinearLayoutManager(this));
+        lmCountry = new LinearLayoutManager(this);
+        rvCountry.setLayoutManager(lmCountry);
         countryAdapter = new CardListAdpter(this, contryList);
         rvCountry.setAdapter(countryAdapter);
 
         rvCards = findViewById(R.id.rv_card);
-        rvCards.setLayoutManager(new LinearLayoutManager(this));
+        lmCard = new LinearLayoutManager(this);
+        rvCards.setLayoutManager(lmCard);
         cardAdapter = new CardListAdpter(this, cardList);
         rvCards.setAdapter(cardAdapter);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !isPermissionsGranted(this)) {
@@ -295,12 +327,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
         }
         switch (requestCode) {
             case 1:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     try {
                         doWork();
                     } catch (Exception e) {
@@ -360,6 +392,50 @@ public class MainActivity extends AppCompatActivity {
         if (!isFinishing()) {
             progressBar.show();
             nativeThread.start();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putIntArray(KEY_COUNTRY_SCROLL_VIEW_STATE,
+                new int[]{ scrollView.getScrollX(), scrollView.getScrollY()});
+//        listCountryState = lmCountry.onSaveInstanceState();
+//        outState.putParcelable(KEY_COUNTRY_VIEW_STATE, listCountryState); // get current recycle view position here.
+        listCardStart = lmCard.onSaveInstanceState();
+        outState.putParcelable(KEY_CARD_VIEW_STATE, listCardStart); // get current recycle view position here.
+        outState.putBoolean(KEY_VIEW_STATE, rvCards.getVisibility() == View.VISIBLE); // get current recycle view position here.
+        outState.putInt(KEY_POSITION_STATE, selectedPosition); // get current recycle view position here.
+    }
+
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
+//        // Retrieve list state and list/item positions
+        if (state != null) {
+            position = state.getIntArray(KEY_COUNTRY_SCROLL_VIEW_STATE);
+//            listCountryState = state.getParcelable(KEY_COUNTRY_VIEW_STATE);
+            listCardStart = state.getParcelable(KEY_CARD_VIEW_STATE);
+            isCardViewVisible = state.getBoolean(KEY_VIEW_STATE);
+            selectedPosition = state.getInt(KEY_POSITION_STATE);
+        }
+    }
+
+    protected void restoreInstantState() {
+        if (contryList != null && contryList.size() > 0) {
+//            if (listCountryState != null) {
+//                lmCountry.onRestoreInstanceState(listCountryState);
+//            }
+            if(position != null)
+                scrollView.post(new Runnable() {
+                    public void run() {
+                        scrollView.scrollTo(position[0], position[1]);
+                    }
+                });
+            if (isCardViewVisible && listCardStart != null) {
+                updateCardLayout((ContryModel) contryList.get(selectedPosition));
+                lmCard.onRestoreInstanceState(listCardStart);
+            }
+
         }
     }
 

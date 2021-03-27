@@ -8,8 +8,8 @@ android {
         applicationId "com.accurascan.accurasdk.sample"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,11 +66,10 @@ dependencies {
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
-
-    // for Accura OCR
-    implementation 'com.github.accurascan:AccuraOCR:2.0.2'
-    // for Accura Fcae Match
-    implementation 'com.github.accurascan:AccuraFaceMatch:2.1'
-    // for Accura liveness
-    implementation 'com.github.accurascan:Liveness-Android:1.1.1'
+    // For Accura OCR SDK
+    implementation 'com.github.accurascan:AccuraOCR:2.1.0'
+    // For Accura Face match
+    implementation 'com.github.accurascan:AccuraFaceMatch:2.1.1'
+    // for liveness
+    implementation 'com.github.accurascan:Liveness-Android:2.0.1'
 }

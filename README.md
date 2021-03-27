@@ -51,11 +51,11 @@ Below steps to setup Accura SDK's to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:2.0.2'
+        implementation 'com.github.accurascan:AccuraOCR:2.1.0'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:2.1'
+        implementation 'com.github.accurascan:AccuraFaceMatch:2.1.1'
         // for liveness
-		implementation 'com.github.accurascan:Liveness-Android:1.1.1'
+		implementation 'com.github.accurascan:Liveness-Android:2.0.1'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -72,11 +72,13 @@ Below steps to setup Accura SDK's to your project.
     RecogEngine recogEngine = new RecogEngine();
     RecogEngine.SDKModel sdkModel = recogEngine.initEngine(your activity context);
 
-    if (sdkModel.i > 0) { // means license is valid
+    if (sdkModel.i > 0) { // if license is valid
 
          if (sdkModel.isMRZEnable) // RecogType.MRZ
 
          if (sdkModel.isBankCardEnable)  // RecogType.BANKCARD
+         
+         if (sdkModel.isAllBarcodeEnable) // RecogType.BARCODE
 
         // sdkModel.isOCREnable is true then get card list which you are selected on creating license
         if (sdkModel.isOCREnable) List<ContryModel> modelList = recogEngine.getCardList(MainActivity.this);
@@ -186,7 +188,8 @@ private void initCamera() {
     cameraView = new CameraView(this);
     if (recogType == RecogType.OCR || recogType == RecogType.DL_PLATE) {
         // must have to set data for RecogType.OCR and RecogType.DL_PLATE
-        cameraView.setCountryId(countryId).setCardId(cardId);
+        cameraView.setCountryId(countryId).setCardId(cardId)
+        		.setMinFrameForValidate(3/*minFrame*/); // Set min frame for qatar ID card for Most validated data. minFrame supports only odd numbers like 3,5...
     } else if (recogType == RecogType.PDF417) {
         // must have to set data RecogType.PDF417
         cameraView.setCountryId(countryId);
@@ -209,6 +212,8 @@ private void initCamera() {
 //                .setEnableMediaPlayer(false) // false to disable default sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, /*custom sound file*/)) // To add your custom sound and Must have to enable media player
             .init();  // initialized camera
+	// To set barcode formate.
+	cameraView.setBarcodeFormat(int barcodeFormat); // access all type of BarcodeFormate from BarcodeFormat.java class
 }
 
 /**
@@ -272,7 +277,7 @@ public void onUpdateLayout(int width, int height) {
  *
  * @param result is scanned card data
  *  result instance of {@link OcrData} if recog type is {@link com.docrecog.scan.RecogType#OCR}
- *              or {@link com.docrecog.scan.RecogType#DL_PLATE}
+ *              or {@link com.docrecog.scan.RecogType#DL_PLATE} or {@link com.docrecog.scan.RecogType#BARCODE}
  *  result instance of {@link RecogResult} if recog type is {@link com.docrecog.scan.RecogType#MRZ}
  *  result instance of {@link CardDetails} if recog type is {@link com.docrecog.scan.RecogType#BANKCARD}
  *  result instance of {@link PDF417Data} if recog type is {@link com.docrecog.scan.RecogType#PDF417}
@@ -297,8 +302,8 @@ public void onScannedComplete(Object result) {
                     cameraView.setBackSide(); // To recognize data from back side too.
                     cameraView.flipImage(imageFlip);
                 }
-            } else if (recogType == RecogType.DL_PLATE) {
-                // @recogType is {@see com.docrecog.scan.RecogType#DL_PLATE}
+            } else if (recogType == RecogType.DL_PLATE || recogType == RecogType.BARCODE) {
+                // @recogType is {@link RecogType#DL_PLATE} or recogType == {@link RecogType#BARCODE}
             	OcrData.setOcrResult((OcrData) result); // Set data To retrieve it anywhere
             }
         } else if (result instanceof RecogResult) {
@@ -330,19 +335,23 @@ public void onScannedComplete(Object result) {
  *                and also used cameraView.flipImage(ImageView) for default animation
  */
 @Override
-public void onProcessUpdate(int titleCodetitleCode, String errorMessage, boolean isFlip) {
-    // display data on ui thread
-    // Check activity com.accurascan.accurasdk.sample.OcrActivity.java to getTitleMessage(titleCode)
-    // And getErrorMessage(errorMessage)
-    if (getTitleMessage(titleCode) != null) { // check
-        Toast.makeText(this, getTitleMessage(titleCode), Toast.LENGTH_SHORT).show(); // display title
-    }
-    if (message != null) {
-        Toast.makeText(this, getErrorMessage(errorMessage), Toast.LENGTH_SHORT).show(); // display message
-    }
-    if (isFlip) {
-        cameraView.flipImage(imageFlip);
-    }
+public void onProcessUpdate(int titleCode, String errorMessage, boolean isFlip) {
+// make sure update view on ui thread
+    runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+            if (getTitleMessage(titleCode) != null) { // check
+                Toast.makeText(context, getTitleMessage(titleCode), Toast.LENGTH_SHORT).show(); // display title
+            }
+            if (errorMessage != null) {
+                Toast.makeText(context, getErrorMessage(errorMessage), Toast.LENGTH_SHORT).show(); // display message
+            }
+            if (isFlip) {
+                // To set default animation or remove this line to set your custom animation after successfully scan front side.
+                cameraView.flipImage(imageFlip);
+            }
+        }
+    });
 }
 
 @Override
@@ -364,6 +373,8 @@ private String getTitleMessage(int titleCode) {
         case RecogEngine.SCAN_TITLE_MRZ_PDF417_FRONT:// for front side MRZ, PDF417 and BankCard
             if (recogType == RecogType.BANKCARD) {
                 return "Scan Bank Card";
+            } else if (recogType == RecogType.BARCODE) {
+                return "Scan Barcode";
             } else
                 return "Scan Front Side of Document";
         case RecogEngine.SCAN_TITLE_MRZ_PDF417_BACK: // for back side MRZ and PDF417
@@ -455,11 +466,17 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     cameraScreenCustomization.feedBackAwayMessage = "Move Phone Away";
     cameraScreenCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
     cameraScreenCustomization.feedBackCloserMessage = "Move Phone Closer";
-    cameraScreenCustomization.feedBackCenterMessage = "Center Your Face";
+    cameraScreenCustomization.feedBackCenterMessage = "Move Phone Center";
     cameraScreenCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
     cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
     cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+
+    // 0 for clean face and 100 for Blurry face or set it -1 to remove blur filter
+    cameraScreenCustomization.setBlurPercentage(80/*blurPercentage*/); // To allow blur on face
+                                                    
+    // Set min and max percentage for glare or set it -1 to remove glare filter
+	cameraScreenCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
     
     Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
     startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
@@ -615,13 +632,19 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.feedbackTextSize = 18;
     livenessCustomization.feedBackframeMessage = "Frame Your Face";
     livenessCustomization.feedBackAwayMessage = "Move Phone Away";
-    livenessCustomization.feedBackOpenEyesMessage = "Keep Open Your Eyes";
+    livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
     livenessCustomization.feedBackCloserMessage = "Move Phone Closer";
-    livenessCustomization.feedBackCenterMessage = "Center Your Face";
+    livenessCustomization.feedBackCenterMessage = "Move Phone Center";
     livenessCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
     livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
     livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+    
+    // 0 for clean face and 100 for Blurry face or set it -1 to remove blur filter
+    livenessCustomization.setBlurPercentage(80/*blurPercentage*/); // To allow blur on face
+                                                    
+    // Set min and max percentage for glare or set it -1 to remove glare filter
+    livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
 
     // must have to call SelfieCameraActivity.getCustomIntent() to create intent
     Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your_url");

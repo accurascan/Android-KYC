@@ -1,16 +1,10 @@
 package com.accurascan.accurasdk.sample;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,9 +16,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
-
-import com.accurascan.accurasdk.sample.util.AlertDialogAbstract;
 import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
@@ -42,10 +33,6 @@ import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
 
-import org.json.JSONObject;
-
-import java.io.File;
-
 public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMatchCallBack, FaceCallback {
 
     Bitmap face1;
@@ -56,8 +43,8 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     ImageView ivUserProfile, ivUserProfile2, iv_frontside, iv_backside;
     LinearLayout ly_back, ly_front;
     View ly_auth_container, ly_mrz_container, ly_front_container, ly_back_container, ly_security_container,
-            ly_pdf417_container, ly_usdl_container, dl_plate_lout, ly_bank_container;
-    View loutImg, loutImg2;
+            ly_pdf417_container, ly_usdl_container, dl_plate_lout, ly_bank_container, ly_barcode_container;
+    View loutImg, loutImg2, loutFaceImageContainer;
     private FaceHelper faceHelper;
     private TextView tvFaceMatchScore, tvLivenessScore, tv_security;
     private boolean isFaceMatch = false, isLiveness = false;
@@ -72,18 +59,17 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         setContentView(R.layout.activity_ocr_result);
 
         initUI();
+        RecogType recogType = RecogType.detachFrom(getIntent());
 
-        if (RecogType.detachFrom(getIntent()) == RecogType.OCR) {
+        if (recogType == RecogType.OCR) {
             // RecogType.OCR
             OcrData ocrData = OcrData.getOcrResult();
             if (ocrData != null) {
                 setOcrData(ocrData);
             }
-        } else if (RecogType.detachFrom(getIntent()) == RecogType.BANKCARD) {
+        } else if (recogType == RecogType.BANKCARD) {
             ly_back.setVisibility(View.GONE);
-            loutImg.setVisibility(View.GONE);
-            loutImg2.setVisibility(View.GONE);
-            ivUserProfile.setVisibility(View.GONE);
+            loutFaceImageContainer.setVisibility(View.GONE);
             ly_auth_container.setVisibility(View.GONE);
 
             CardDetails cardDetails = CardDetails.getCardDetails();
@@ -95,7 +81,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 ly_front.setVisibility(View.GONE);
             }
 
-        } else if (RecogType.detachFrom(getIntent()) == RecogType.MRZ) {
+        } else if (recogType == RecogType.MRZ) {
             // RecogType.MRZ
             RecogResult g_recogResult = RecogResult.getRecogResult();
             if (g_recogResult != null) {
@@ -119,13 +105,13 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 }
             }
             setData();
-        } else if (RecogType.detachFrom(getIntent()) == RecogType.DL_PLATE) {
+        } else if (recogType == RecogType.DL_PLATE) {
             View view = findViewById(R.id.v_divider);
             dl_plate_lout.setVisibility(View.VISIBLE);
-            loutImg.setVisibility(View.GONE);
             view.setVisibility(View.GONE);
             ly_back.setVisibility(View.GONE);
-            ivUserProfile.setVisibility(View.GONE);
+//            ivUserProfile.setVisibility(View.GONE);
+            loutFaceImageContainer.setVisibility(View.GONE);
             ly_auth_container.setVisibility(View.GONE);
 
             OcrData ocrData = OcrData.getOcrResult();
@@ -139,7 +125,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 else ly_front.setVisibility(View.GONE);
             }
 
-        } else if (RecogType.detachFrom(getIntent()) == RecogType.PDF417) {
+        } else if (recogType == RecogType.PDF417 || (recogType == RecogType.BARCODE && PDF417Data.getPDF417Result() != null)) {
             // RecogType.PDF417
             PDF417Data pdf417Data = PDF417Data.getPDF417Result();
 
@@ -152,6 +138,12 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 ly_front.setVisibility(View.GONE);
             }
 
+//            if (recogType == RecogType.BARCODE) {
+//                ly_back.setVisibility(View.GONE);
+//                loutFaceImageContainer.setVisibility(View.GONE);
+//            ly_auth_container.setVisibility(View.GONE);
+//            }
+
             if (pdf417Data.docBackBitmap != null) {
                 iv_backside.setImageBitmap(pdf417Data.docBackBitmap);
             } else {
@@ -162,6 +154,25 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 face1 = pdf417Data.faceBitmap;
             }
             setData();
+        } else if (recogType == RecogType.BARCODE) {
+            // RecogType.BARCODE
+            View view = findViewById(R.id.v_divider);
+            view.setVisibility(View.GONE);
+            ly_barcode_container.setVisibility(View.VISIBLE);
+            ly_back.setVisibility(View.GONE);
+            loutFaceImageContainer.setVisibility(View.GONE);
+            ly_auth_container.setVisibility(View.GONE);
+
+            OcrData ocrData = OcrData.getOcrResult();
+
+            if (ocrData != null) {
+                TextView textView = findViewById(R.id.tv_barcode_data);
+                textView.setText(ocrData.getFrontData().getOcr_data().get(0).getKey_data());
+
+                final Bitmap frontBitmap = ocrData.getFrontimage();
+                if (frontBitmap != null && !frontBitmap.isRecycled()) iv_frontside.setImageBitmap(frontBitmap);
+                else ly_front.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -169,6 +180,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         //initialize the UI
         ivUserProfile = findViewById(R.id.ivUserProfile);
         ivUserProfile2 = findViewById(R.id.ivUserProfile2);
+        loutFaceImageContainer = findViewById(R.id.lyt_face_image_container);
         loutImg = findViewById(R.id.lyt_img_cover);
         loutImg2 = findViewById(R.id.lyt_img_cover2);
         tvLivenessScore = findViewById(R.id.tvLivenessScore);
@@ -198,6 +210,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         ly_usdl_container = findViewById(R.id.ly_usdl_container);
         dl_plate_lout = findViewById(R.id.dl_plate_lout);
         ly_bank_container = findViewById(R.id.ly_bank_container);
+        ly_barcode_container = findViewById(R.id.barcode_lout);
 
         tvFaceMatchScore.setVisibility(View.GONE);
         tvLivenessScore.setVisibility(View.GONE);
@@ -209,6 +222,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         ly_usdl_container.setVisibility(View.GONE);
         dl_plate_lout.setVisibility(View.GONE);
         ly_bank_container.setVisibility(View.GONE);
+        ly_barcode_container.setVisibility(View.GONE);
     }
 
     private void setOcrData(OcrData ocrData) {
@@ -464,6 +478,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             TextView tv_key417 = layout.findViewById(R.id.tv_key);
             TextView tv_value417 = layout.findViewById(R.id.tv_value);
             tv_key417.setText("PDF417");
+            tv_value417.setGravity(View.TEXT_ALIGNMENT_TEXT_START);
             tv_value417.setText(barcodeData.wholeDataString);
             pdf417_table_layout.addView(layout);
             ly_pdf417_container.setVisibility(View.VISIBLE);
@@ -571,7 +586,8 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             Glide.with(this).load(face1).centerCrop().into(ivUserProfile);
             ivUserProfile.setVisibility(View.VISIBLE);
         } else {
-            ivUserProfile.setVisibility(View.GONE);
+            loutFaceImageContainer.setVisibility(View.GONE);
+            ly_auth_container.setVisibility(View.GONE);
         }
     }
 
@@ -586,19 +602,21 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             Runnable runnable = new Runnable() {
                 public void run() {
 
-                    faceHelper.setInputImage(face1);
+                    if (face1 != null) {
+                        faceHelper.setInputImage(face1);
 
-                    if (result.getFaceBiometrics() != null) {
-                        if (result.getLivenessResult() == null) {
-                            return;
-                        }
-                        if (result.getLivenessResult().getLivenessStatus()) {
-                            Bitmap face2 = result.getFaceBiometrics();
-                            Glide.with(OcrResultActivity.this).load(face2).centerCrop().into(ivUserProfile2);
-                            if (face2 != null) {
-                                faceHelper.setMatchImage(face2);
+                        if (result.getFaceBiometrics() != null) {
+                            if (result.getLivenessResult() == null) {
+                                return;
                             }
-                            setLivenessData(result.getLivenessResult().getLivenessScore() * 100 + "");
+                            if (result.getLivenessResult().getLivenessStatus()) {
+                                Bitmap face2 = result.getFaceBiometrics();
+                                Glide.with(OcrResultActivity.this).load(face2).centerCrop().into(ivUserProfile2);
+                                if (face2 != null) {
+                                    faceHelper.setMatchImage(face2);
+                                }
+                                setLivenessData(result.getLivenessResult().getLivenessScore() * 100 + "");
+                            }
                         }
                     }
 
@@ -629,20 +647,6 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         }
     }
 
-    private void displayRetryAlert(final String msg) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                new AlertDialogAbstract(OcrResultActivity.this, msg, getString(R.string.ok), "") {
-                    @Override
-                    public void positive_negativeButtonClick(int pos_neg_id) {
-
-                    }
-                };
-            }
-        });
-    }
-
     //method for setting liveness data
     //parameter to pass : livenessScore
     private void setLivenessData(String livenessScore) {
@@ -663,7 +667,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 if (result.getStatus().equals("1")) {
                     handleVerificationSuccessResult(result);
                 } else {
-                    Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else if (requestCode == 102) {
                 AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
@@ -673,7 +677,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 if (result.getStatus().equals("1")) {
                     handleVerificationSuccessResult(result);
                 } else {
-                    Toast.makeText(this, result.getStatus() + "Retry...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Retry...", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -682,6 +686,9 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (faceHelper != null) {
+            faceHelper.closeEngine();
+        }
         Runtime.getRuntime().gc();
     }
 
@@ -703,7 +710,6 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             try {
                 OcrData.getOcrResult().getFaceImage().recycle();
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }else if (RecogType.detachFrom(getIntent()) == RecogType.MRZ && RecogResult.getRecogResult() != null) {
             try {
@@ -711,13 +717,20 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 RecogResult.getRecogResult().faceBitmap.recycle();
                 RecogResult.getRecogResult().docBackBitmap.recycle();
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }else if (RecogType.detachFrom(getIntent()) == RecogType.PDF417 && PDF417Data.getPDF417Result() != null) {
-            PDF417Data.getPDF417Result().faceBitmap.recycle();
-            PDF417Data.getPDF417Result().docFrontBitmap.recycle();
-            PDF417Data.getPDF417Result().docBackBitmap.recycle();
+            try {
+                PDF417Data.getPDF417Result().docFrontBitmap.recycle();
+                PDF417Data.getPDF417Result().faceBitmap.recycle();
+                PDF417Data.getPDF417Result().docBackBitmap.recycle();
+            } catch (Exception e) {
+            }
         }
+
+        OcrData.setOcrResult(null);
+        RecogResult.setRecogResult(null);
+        CardDetails.setCardDetails(null);
+        PDF417Data.setPDF417Result(null);
         //</editor-fold>
 
         try {
@@ -763,11 +776,13 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         livenessCustomization.feedBackAwayMessage = "Move Phone Away";
         livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
         livenessCustomization.feedBackCloserMessage = "Move Phone Closer";
-        livenessCustomization.feedBackCenterMessage = "Center Your Face";
+        livenessCustomization.feedBackCenterMessage = "Move Phone Center";
         livenessCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
         livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
         livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
         livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+        livenessCustomization.setBlurPercentage(80);
+        livenessCustomization.setGlarePercentage(-1, -1);
 
         Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url");
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
@@ -786,11 +801,13 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         cameraScreenCustomization.feedBackAwayMessage = "Move Phone Away";
         cameraScreenCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
         cameraScreenCustomization.feedBackCloserMessage = "Move Phone Closer";
-        cameraScreenCustomization.feedBackCenterMessage = "Center Your Face";
+        cameraScreenCustomization.feedBackCenterMessage = "Move Phone Center";
         cameraScreenCustomization.feedBackMultipleFaceMessage = "Multiple Face Detected";
         cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
         cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
         cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+        cameraScreenCustomization.setBlurPercentage(80);
+        cameraScreenCustomization.setGlarePercentage(-1, -1);
 
         Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
@@ -817,10 +834,6 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
 
     @Override
     public void onFaceMatch(float score) {
-//        NumberFormat nf = NumberFormat.getNumberInstance();
-//        nf.setMaximumFractionDigits(1);
-//        String ss = nf.format(score);
-//        System.out.println("Match Score : " + ss + " %");
         tvFaceMatchScore.setText(String.format(getString(R.string.score_formate), score));
         tvLivenessScore.setVisibility(View.VISIBLE);
         tvFaceMatchScore.setVisibility(View.VISIBLE);

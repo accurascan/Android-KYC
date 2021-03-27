@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">Accura SDK</string>
+    <string name="app_name">Accura Demo SDK</string>
 
     <string name="passport_mrz"><![CDATA[Passport MRZ]]></string>
     <string name="id_mrz"><![CDATA[ID Card MRZ]]></string>
     <string name="visa_mrz"><![CDATA[VISA MRZ]]></string>
-    <string name="other_mrz"><![CDATA[Other MRZ]]></string>
+    <string name="other_mrz"><![CDATA[ALL MRZ]]></string>
     <string name="bank_card">Bank Card</string>
     <string name="accura_ocr">OCR</string>
     <string name="accura_ocr_desp"><![CDATA[Recognizes Passports, Driving License & National ID\'s From All Countries. Works Ofﬂine]]></string>

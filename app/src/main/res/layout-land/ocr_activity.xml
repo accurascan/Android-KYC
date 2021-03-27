@@ -25,22 +25,17 @@
         android:text="flip"
         android:src="@drawable/flip_camera_icon"/>
 
-    <com.accurascan.ocr.mrz.customview.CustomTextView
+    <ImageView
         android:id="@+id/select_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:padding="@dimen/_5dp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="@dimen/_20dp"
+        android:contentDescription="Flip camera"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/fifteen"
-        android:layout_marginBottom="10dp"
-        android:paddingStart="25dp"
-        android:paddingEnd="25dp"
-        android:background="@drawable/round_border_rect"
-        android:gravity="center"
-        android:text="SELECT BARCODE FORMAT"
-        android:textColor="@color/white"
-        android:textSize="@dimen/fifteen"
-        app:typeface="ALLER_STD_REG"
+        android:text="flip"
+        android:src="@drawable/ic_barcode"
         android:visibility="gone"/>
 
 </RelativeLayout>
