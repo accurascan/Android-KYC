@@ -468,8 +468,8 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
             }
             adapter.notifyDataSetChanged();
             mposition = position;
-            // to set barcode selected barcode format and default scan all barcode
-            cameraView.setBarcodeFormat(BarcodeFormat.BARCODE_ALL_FORMATS);
+            // set barcode format to scan only selected barcode and by default scan all barcode
+            cameraView.setBarcodeFormat(CODE_NAMES.get(mposition).formatsType);
 
             types_dialog.cancel();
         });
