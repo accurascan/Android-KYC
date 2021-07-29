@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -452,6 +451,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             addLayout("Department No.", recogResult.departmentnumber);
             addLayout("Other ID", recogResult.otherid);
             addLayout("Other ID Check", recogResult.otheridchecksum);
+            addLayout("Other ID2", recogResult.otherid2);
             addLayout("Second Row Check No.", recogResult.secondrowchecksum);
             addLayout("Correct Second Row Check No.", recogResult.correctsecondrowchecksum);
         } catch (Exception e) {
@@ -851,7 +851,6 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
 
     @Override
     public void onInitEngine(int i) {
-        Log.e("TAG", "onInitEngine: " + i);
         if (i != -1) {
             performClick(isFaceMatch, isLiveness);
         }

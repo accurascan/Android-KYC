@@ -5,14 +5,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
@@ -20,14 +16,13 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.FileProvider;
 
 import com.accurascan.facematch.customview.CustomTextView;
 import com.accurascan.facematch.customview.FaceImageview;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.facematch.util.Utils;
+import com.accurascan.ocr.mrz.util.AccuraLog;
 import com.facedetection.FMCameraScreenCustomization;
 import com.facedetection.SelfieFMCameraActivity;
 import com.facedetection.model.AccuraFMCameraModel;
@@ -35,7 +30,6 @@ import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
 
-import java.io.File;
 import java.text.NumberFormat;
 
 public class ActivityFaceMatch extends BaseActivity implements FaceCallback, FaceHelper.FaceMatchCallBack {
@@ -266,7 +260,6 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         nf.setMaximumFractionDigits(1);
         String ss = nf.format(score);
         txtScore.setText("Match Score : " + ss + " %");
-        Log.e(ActivityFaceMatch.class.getSimpleName(), "onFaceMatch: "+ ss + " %");
     }
 
     @Override
@@ -284,7 +277,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
 
     @Override
     public void onInitEngine(int ret) {
-        Log.e("Activity+TAG", "onInitEngine: " + ret );
+        AccuraLog.loge("Activity+TAG", "onInitEngine: " + ret );
     }
 
     //call if face detect
@@ -301,7 +294,6 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
             }
 
         }
-        Log.e(ActivityFaceMatch.class.getSimpleName(), "onLeftDetect: ");
         helper.onLeftDetect(faceResult);
     }
 
@@ -320,7 +312,6 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
                 image2.setFaceDetectionResult(null);
             }
         }
-        Log.e(ActivityFaceMatch.class.getSimpleName(), "onRightDetect: ");
         helper.onRightDetect(faceResult);
     }
 
