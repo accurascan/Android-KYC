@@ -24,7 +24,7 @@ Below steps to setup Accura SDK's to your project.
 
 #### Step 2. Add the token to `gradle.properties`:
 
-    authToken=jp_lo9e8qo0o1bt4ofne9hob61v19
+    authToken=jp_ssguccab6c5ge2l4jitaj92ek2
 
 #### Step 3: Add the dependency:
     Set Accura SDK as a dependency to our app/build.gradle file.
@@ -51,11 +51,11 @@ Below steps to setup Accura SDK's to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:2.1.2'
+        implementation 'com.github.accurascan:AccuraOCR:3.1.0'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:2.1.1'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.1.0'
         // for liveness
-		implementation 'com.github.accurascan:Liveness-Android:2.0.1'
+		implementation 'com.github.accurascan:Liveness-Android:3.1.0'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -605,6 +605,8 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
         >
 
      </application>
+     
+    Note : 'android:networkSecurityConfig="@xml/network_security_config"' setup will permit clear text traffic   
 
 #### Step 2 :  Add following code to your Application class or MainActivity for hostname verification
 

@@ -14,7 +14,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
-import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,7 +39,6 @@ import com.accurascan.ocr.mrz.util.AccuraLog;
 import com.docrecog.scan.MRZDocumentType;
 import com.docrecog.scan.RecogEngine;
 import com.docrecog.scan.RecogType;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 if (activity.progressBar != null && activity.progressBar.isShowing()) {
                     activity.progressBar.dismiss();
                 }
-                Log.e(TAG, "handleMessage: " + msg.what);
+                AccuraLog.loge(TAG, "handleMessage: " + msg.what);
                 if (msg.what == 1) {
                     if (activity.sdkModel.isMRZEnable) {
                         activity.btnIdMrz.setVisibility(View.VISIBLE);
@@ -110,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     // doWorkNative();
                     RecogEngine recogEngine = new RecogEngine();
+                    AccuraLog.refreshLogfile(activity);
                     AccuraLog.enableLogs(true); // make sure to disable logs in release mode
                     AccuraLivenessLog.setDEBUG(true);
                     recogEngine.setDialog(false); // setDialog(false) To set your custom dialog for license validation
@@ -122,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
                         // if OCR enable then get card list
                         if (activity.sdkModel.isOCREnable)
                             activity.modelList = recogEngine.getCardList(activity);
-                        AccuraLog.loge(TAG, "run: " + new Gson().toJson(activity.modelList) );
 
                         recogEngine.setBlurPercentage(activity, 62);
                         recogEngine.setFaceBlurPercentage(activity, 70);
@@ -173,23 +171,6 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.this.rvCountry.setVisibility(View.VISIBLE);
         MainActivity.this.rvCards.setVisibility(View.INVISIBLE);
         restoreInstantState();
-    }
-
-    // must have to required storage permission to print logs
-    public void printLog() {
-        File file = new File(Environment.getExternalStorageDirectory(), "AccuraKYCDemo.log");
-        String command = "logcat -f "+ file.getPath() + " -v time *:V";
-        Log.d(TAG, "command: " + command);
-
-        try{
-            Runtime.getRuntime().exec(command);
-        }
-        catch(IOException e){
-            e.printStackTrace();
-        }
-        Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        scanIntent.setData(Uri.fromFile(file));
-        sendBroadcast(scanIntent);
     }
 
     @Override
@@ -384,7 +365,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void doWork() {
-        printLog();  // Create Log file
         progressBar = new ProgressDialog(this);
         progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressBar.setMessage("Please wait...");
