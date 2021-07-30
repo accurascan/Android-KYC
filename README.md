@@ -30,6 +30,16 @@ Below steps to setup Accura SDK's to your project.
     Set Accura SDK as a dependency to our app/build.gradle file.
 
     android {
+    
+        defaultConfig {
+            ...
+            ndk {
+                // Specify CPU architecture.
+                // 'armeabi-v7a' & 'arm64-v8a' are respectively 32 bit and 64 bit device architecture 
+                // 'x86' & 'x86_64' are respectively 32 bit and 64 bit emulator architecture
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            }
+        }
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
@@ -47,6 +57,7 @@ Below steps to setup Accura SDK's to your project.
             pickFirst 'lib/x86_64/libcrypto.so'
             pickFirst 'lib/x86_64/libssl.so'
 		}
+		
     }
     dependencies {
         ...
