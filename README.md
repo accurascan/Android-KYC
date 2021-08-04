@@ -62,11 +62,11 @@ Below steps to setup Accura SDK's to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:3.1.0'
+        implementation 'com.github.accurascan:AccuraOCR:3.1.1'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.1.0'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.1.1'
         // for liveness
-		implementation 'com.github.accurascan:Liveness-Android:3.1.0'
+		implementation 'com.github.accurascan:Liveness-Android:3.1.1'
     }
 
 #### Step 4: Add files to project assets folder:
