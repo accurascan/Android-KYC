@@ -62,11 +62,11 @@ Below steps to setup Accura SDK's to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:3.1.1'
+        implementation 'com.github.accurascan:AccuraOCR:3.4.3'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.1.1'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.0'
         // for liveness
-		implementation 'com.github.accurascan:Liveness-Android:3.1.1'
+		implementation 'com.github.accurascan:Liveness-Android:3.2.0'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -482,6 +482,19 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
     cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+    cameraScreenCustomization.feedBackLowLightMessage = "Low light detected";
+    cameraScreenCustomization.feedbackDialogMessage = "Loading...";
+    cameraScreenCustomization.feedBackProcessingMessage = "Processing...";
+    cameraScreenCustomization.showlogo = 0; // Set 0 to hide logo from selfie camera screen
+    cameraScreenCustomization.logoIcon = R.drawable.your_logo; // To set your custom logo
+        
+    // FMCameraScreenCustomization.CAMERA_FACING_FRONT to set selfie camera       
+    // FMCameraScreenCustomization.CAMERA_FACING_BACK to set rear camera
+    cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
+
+        
+    // 0 for full dark face and 100 for full bright face or set it -1 to remove low light filter
+    cameraScreenCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
 
     // 0 for clean face and 100 for Blurry face or set it -1 to remove blur filter
     cameraScreenCustomization.setBlurPercentage(80/*blurPercentage*/); // To allow blur on face
@@ -517,11 +530,13 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 
     Important Grant Camera and storage Permission.
 
-    must have to implements FaceCallback, FaceHelper.FaceMatchCallBack to your activity
+    must have to implements FaceCallback to your activity
     ImageView image1,image2;
 
     // Initialized facehelper in onCreate.
     FaceHelper helper = new FaceHelper(this);
+    faceHelper.setFaceMatchCallBack(this);
+    faceHelper.initEngine();
 
     TextView tvFaceMatch = findViewById(R.id.tvFM);
     tvFaceMatch.setOnClickListener(new OnClickListener() {
@@ -572,15 +587,17 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     
     @Override
     public void onLeftDetect(FaceDetectionResult faceResult) {
-        // must have to call helper method onLeftDetect(faceResult) to get faceMatch score.
-        helper.onLeftDetect(faceResult);
+        if (faceResult != null) {
+            // do some code
+        }
     }
 
     //call if face detect
     @Override
     public void onRightDetect(FaceDetectionResult faceResult) {
-        // must have to call helper method onRightDetect(faceResult) to get faceMatch score.
-        helper.onRightDetect(faceResult);
+        if (faceResult != null) {
+            // do some code
+        }
     }
 
     @Override
@@ -652,6 +669,18 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
     livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+    livenessCustomization.feedBackLowLightMessage = "Low light detected";
+    livenessCustomization.feedbackDialogMessage = "Loading...";
+    livenessCustomization.feedBackProcessingMessage = "Processing...";
+    livenessCustomization.showlogo = 0; // Set 0 to hide logo from selfie camera screen
+    livenessCustomization.logoIcon = R.drawable.your_logo; // To set your custom logo
+        
+    // LivenessCustomization.CAMERA_FACING_FRONT to set selfie camera       
+    // LivenessCustomization.CAMERA_FACING_BACK to set rear camera
+    livenessCustomization.facing = LivenessCustomization.CAMERA_FACING_FRONT;
+        
+    // 0 for full dark face and 100 for full bright face or set it -1 to remove low light filter
+    livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
     
     // 0 for clean face and 100 for Blurry face or set it -1 to remove blur filter
     livenessCustomization.setBlurPercentage(80/*blurPercentage*/); // To allow blur on face
