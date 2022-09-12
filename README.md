@@ -1,11 +1,11 @@
 # Accura KYC Android SDK - OCR, Face Match & Liveness Check
 Android KYC SDK - OCR &amp; Face Match <br/><br/>
 Accura OCR is used for Optical character recognition.<br/><br/>
-Accura Face Match is used for Matching 2 Faces. Source and Target. It matches the User Image from a Selfie vs User Image in document.<br/><br/>
-Accura Authentication is used for your customer verification and authentication.Unlock the True Identity of Your Users with 3D Selfie Technology<br/><br/>
+Accura Face Match is used for Matching 2 Faces, Source face and Target face. It matches the User Image from a Selfie vs User Image in document.<br/><br/>
+Accura Authentication is used for your customer verification and authentication. Unlock the True Identity of Your Users with 3D Selfie Technology<br/><br/>
 
 
-Below steps to setup Accura SDK's to your project.
+Below steps to setup Accura's SDK to your project.
 
 ## Install SDK in to your App
 
@@ -62,11 +62,11 @@ Below steps to setup Accura SDK's to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:3.1.1'
+        implementation 'com.github.accurascan:AccuraOCR:3.4.3'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.1.1'
-        // for liveness
-		implementation 'com.github.accurascan:Liveness-Android:3.1.1'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.0'
+        // for Accura liveness
+        implementation 'com.github.accurascan:Liveness-Android:3.2.0'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -212,6 +212,10 @@ private void initCamera() {
         // 3. ID card MRZ document   - MRZDocumentType.ID_CARD_MRZ 
         // 4. Visa MRZ document      - MRZDocumentType.VISA_MRZ    
         cameraView.setMRZDocumentType(mrzDocumentType);
+        
+        // Pass 'all' for accepting MRZs of all countries
+        // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- 'IND', 'USA', 'TUN', etc.
+        cameraView.setMRZCountryCodeList("all");
     }
     cameraView.setRecogType(recogType)
             .setView(linearLayout) // To add camera view
@@ -482,6 +486,19 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
     cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+    cameraScreenCustomization.feedBackLowLightMessage = "Low light detected";
+    cameraScreenCustomization.feedbackDialogMessage = "Loading...";
+    cameraScreenCustomization.feedBackProcessingMessage = "Processing...";
+    cameraScreenCustomization.showlogo = 0; // Set 0 to hide logo from selfie camera screen
+    cameraScreenCustomization.logoIcon = R.drawable.your_logo; // To set your custom logo
+        
+    // FMCameraScreenCustomization.CAMERA_FACING_FRONT to set selfie camera       
+    // FMCameraScreenCustomization.CAMERA_FACING_BACK to set rear camera
+    cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
+
+        
+    // 0 for full dark face and 100 for full bright face or set it -1 to remove low light filter
+    cameraScreenCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
 
     // 0 for clean face and 100 for Blurry face or set it -1 to remove blur filter
     cameraScreenCustomization.setBlurPercentage(80/*blurPercentage*/); // To allow blur on face
@@ -517,11 +534,13 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 
     Important Grant Camera and storage Permission.
 
-    must have to implements FaceCallback, FaceHelper.FaceMatchCallBack to your activity
+    must have to implements FaceCallback to your activity
     ImageView image1,image2;
 
     // Initialized facehelper in onCreate.
     FaceHelper helper = new FaceHelper(this);
+    faceHelper.setFaceMatchCallBack(this);
+    faceHelper.initEngine();
 
     TextView tvFaceMatch = findViewById(R.id.tvFM);
     tvFaceMatch.setOnClickListener(new OnClickListener() {
@@ -535,14 +554,14 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
             helper.getFaceMatchScore(uri1, uri2);
 
 
-            // also use some other method for for face match
-            // must have to helper.setInputImage first and then helper.setMatchImage
+            // also use some other method for face match
+            // Make sure to call "helper.setInputImage" first, followed by "helper.setMatchImage".
             // helper.setInputImage(uri1);
             // helper.setMatchImage(uri2);
         
         }
     });
-    // Override methods of FaceMatchCallBack
+    // Override methods for FaceCallback
 
     @Override
     public void onFaceMatch(float score) {
@@ -562,25 +581,22 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
         image2.setImageBitmap(src2);
     }
 
-    // Override methods for FaceCallback
-
     @Override
     public void onInitEngine(int ret) {
     }
 
-    //call if face detect
-    
     @Override
     public void onLeftDetect(FaceDetectionResult faceResult) {
-        // must have to call helper method onLeftDetect(faceResult) to get faceMatch score.
-        helper.onLeftDetect(faceResult);
+        if (faceResult != null) {
+            // do some code
+        }
     }
 
-    //call if face detect
     @Override
     public void onRightDetect(FaceDetectionResult faceResult) {
-        // must have to call helper method onRightDetect(faceResult) to get faceMatch score.
-        helper.onRightDetect(faceResult);
+        if (faceResult != null) {
+            // do some code
+        }
     }
 
     @Override
@@ -652,6 +668,18 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
     livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+    livenessCustomization.feedBackLowLightMessage = "Low light detected";
+    livenessCustomization.feedbackDialogMessage = "Loading...";
+    livenessCustomization.feedBackProcessingMessage = "Processing...";
+    livenessCustomization.showlogo = 0; // Set 0 to hide logo from selfie camera screen
+    livenessCustomization.logoIcon = R.drawable.your_logo; // To set your custom logo
+        
+    // LivenessCustomization.CAMERA_FACING_FRONT to set selfie camera       
+    // LivenessCustomization.CAMERA_FACING_BACK to set rear camera
+    livenessCustomization.facing = LivenessCustomization.CAMERA_FACING_FRONT;
+        
+    // 0 for full dark face and 100 for full bright face or set it -1 to remove low light filter
+    livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
     
     // 0 for clean face and 100 for Blurry face or set it -1 to remove blur filter
     livenessCustomization.setBlurPercentage(80/*blurPercentage*/); // To allow blur on face

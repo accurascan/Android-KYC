@@ -32,7 +32,7 @@ import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
 
-public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMatchCallBack, FaceCallback {
+public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
     Bitmap face1;
     private final int ACCURA_LIVENESS_CAMERA = 101;
@@ -739,7 +739,6 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
             e.printStackTrace();
         }
         setResult(RESULT_OK);
-//        startActivity(new Intent(this, OcrActivity.class));
         finish();
     }
 
@@ -753,6 +752,8 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         }
         if (faceHelper == null) {
             faceHelper = new FaceHelper(this);
+            faceHelper.setFaceMatchCallBack(this);
+            faceHelper.initEngine();
         } else {
             performClick(isFaceMatch, isLiveness);
         }
@@ -781,6 +782,14 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         livenessCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
         livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
         livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
+        livenessCustomization.feedBackLowLightMessage = "Low light detected";
+        livenessCustomization.feedbackDialogMessage = "Loading...";
+        livenessCustomization.feedBackProcessingMessage = "Processing...";
+        livenessCustomization.showlogo = 1; // Set 0 to hide logo from selfie camera screen
+        //livenessCustomization.logoIcon = R.drawable.accura_liveness_logo; // To set your custom logo
+        //livenessCustomization.facing = LivenessCustomization.CAMERA_FACING_FRONT;
+
+        livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
         livenessCustomization.setBlurPercentage(80);
         livenessCustomization.setGlarePercentage(-1, -1);
 
@@ -806,29 +815,19 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
         cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
         cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
         cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+        cameraScreenCustomization.feedBackLowLightMessage = "Low light detected";
+        cameraScreenCustomization.feedbackDialogMessage = "Loading...";
+        cameraScreenCustomization.feedBackProcessingMessage = "Processing...";
+        cameraScreenCustomization.showlogo = 1; // Set 0 if hide logo
+        //cameraScreenCustomization.logoIcon = R.drawable.accura_fm_logo; // To set your custom logo
+
+        //cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
+        cameraScreenCustomization.setLowLightTolerence(-1);
         cameraScreenCustomization.setBlurPercentage(80);
         cameraScreenCustomization.setGlarePercentage(-1, -1);
 
         Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
-
-//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        File f = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
-//        Uri uriForFile = FileProvider.getUriForFile(
-//                OcrResultActivity.this,
-//                getPackageName() + ".provider",
-//                f
-//        );
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-//            intent.putExtra("android.intent.extras.CAMERA_FACING", android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT);
-//            intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
-//            intent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
-//        } else {
-//            intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
-//        }
-//        intent.putExtra(MediaStore.EXTRA_OUTPUT, uriForFile);
-//        startActivityForResult(intent, 102);
 
     }
 
@@ -858,7 +857,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
 
     @Override
     public void onLeftDetect(FaceDetectionResult faceDetectionResult) {
-        faceHelper.onLeftDetect(faceDetectionResult);
+        //faceHelper.onLeftDetect(faceDetectionResult);
     }
 
     @Override
@@ -872,7 +871,7 @@ public class OcrResultActivity extends BaseActivity implements FaceHelper.FaceMa
                 e.printStackTrace();
             }
         }
-        faceHelper.onRightDetect(faceDetectionResult);
+        //faceHelper.onRightDetect(faceDetectionResult);
     }
 
     @Override

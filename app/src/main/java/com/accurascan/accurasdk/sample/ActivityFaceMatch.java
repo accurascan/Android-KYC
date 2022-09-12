@@ -32,7 +32,7 @@ import com.inet.facelock.callback.FaceHelper;
 
 import java.text.NumberFormat;
 
-public class ActivityFaceMatch extends BaseActivity implements FaceCallback, FaceHelper.FaceMatchCallBack {
+public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
     int ind;
 
     FaceImageview image1;
@@ -50,9 +50,9 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(com.accurascan.facematch.R.layout.activity_facematch);
+        setContentView(R.layout.activity_facematch);
 
-        findViewById(com.accurascan.facematch.R.id.ivBack).setOnClickListener(new OnClickListener() {
+        findViewById(R.id.ivBack).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
@@ -60,6 +60,8 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         });
 
         helper = new FaceHelper(this);
+        helper.setFaceMatchCallBack(this);
+        helper.initEngine();
         if (Utils.isPermissionsGranted(this)) {
             init();
         } else {
@@ -70,7 +72,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     private void init() {
 
         //handle click of gallery button of front side image that is used to select image from gallery
-        findViewById(com.accurascan.facematch.R.id.btnGallery1).setOnClickListener(new OnClickListener() {
+        findViewById(R.id.btnGallery1).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 ind = 1;
                 Intent intent = new Intent();
@@ -81,7 +83,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         });
 
         //handle click of camera button of front side image  that is used to capture image
-        findViewById(com.accurascan.facematch.R.id.btnCamera1).setOnClickListener(new OnClickListener() {
+        findViewById(R.id.btnCamera1).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 ind = 1;
                 openFaceMatchCamera();
@@ -89,7 +91,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         });
 
         //handle click of gallery button of back side image
-        findViewById(com.accurascan.facematch.R.id.btnGallery2).setOnClickListener(new OnClickListener() {
+        findViewById(R.id.btnGallery2).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 ind = 2;
                 Intent intent = new Intent();
@@ -100,14 +102,14 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         });
 
         //handle click of camera button of back side image
-        findViewById(com.accurascan.facematch.R.id.btnCamera2).setOnClickListener(new OnClickListener() {
+        findViewById(R.id.btnCamera2).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 ind = 2;
                 openFaceMatchCamera();
             }
         });
 
-        txtScore = (CustomTextView) findViewById(com.accurascan.facematch.R.id.tvScore);
+        txtScore = (CustomTextView) findViewById(R.id.tvScore);
         txtScore.setText("Match Score : 0 %");
 
         image1 = new FaceImageview(this);  //initialize the view of front image
@@ -154,10 +156,10 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     private void openFaceMatchCamera() {
         FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
 
-        cameraScreenCustomization.backGroundColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_Background);
-        cameraScreenCustomization.closeIconColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_CloseIcon);
-        cameraScreenCustomization.feedbackBackGroundColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_feedbackBg);
-        cameraScreenCustomization.feedbackTextColor = getResources().getColor(com.accurascan.facematch.R.color.fm_camera_feedbackText);
+        cameraScreenCustomization.backGroundColor = getResources().getColor(R.color.fm_camera_Background);
+        cameraScreenCustomization.closeIconColor = getResources().getColor(R.color.fm_camera_CloseIcon);
+        cameraScreenCustomization.feedbackBackGroundColor = getResources().getColor(R.color.fm_camera_feedbackBg);
+        cameraScreenCustomization.feedbackTextColor = getResources().getColor(R.color.fm_camera_feedbackText);
         cameraScreenCustomization.feedbackTextSize = 18;
         cameraScreenCustomization.feedBackframeMessage = "Frame Your Face";
         cameraScreenCustomization.feedBackAwayMessage = "Move Phone Away";
@@ -168,6 +170,14 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         cameraScreenCustomization.feedBackHeadStraightMessage = "Keep Your Head Straight";
         cameraScreenCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
         cameraScreenCustomization.feedBackGlareFaceMessage = "Glare Detected";
+        cameraScreenCustomization.feedBackLowLightMessage = "Low light detected";
+        cameraScreenCustomization.feedbackDialogMessage = "Loading...";
+        cameraScreenCustomization.feedBackProcessingMessage = "Processing...";
+        cameraScreenCustomization.showlogo = 1; // Set 0 if hide logo
+        //cameraScreenCustomization.logoIcon = R.drawable.accura_fm_logo; // To set your custom logo
+
+        //cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
+        cameraScreenCustomization.setLowLightTolerence(-1);
         cameraScreenCustomization.setBlurPercentage(80);
         cameraScreenCustomization.setGlarePercentage(-1, -1);
 
@@ -231,8 +241,8 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     private void SetImageView1() {
         //create imageView for inout image
         if (!bImage1) {
-            FrameLayout layout = (FrameLayout) findViewById(com.accurascan.facematch.R.id.ivCardLayout);
-            ImageView ivCard = (ImageView) findViewById(com.accurascan.facematch.R.id.ivCard);
+            FrameLayout layout = (FrameLayout) findViewById(R.id.ivCardLayout);
+            ImageView ivCard = (ImageView) findViewById(R.id.ivCard);
             image1.getLayoutParams().height = ivCard.getHeight();
             image1.requestLayout();
             layout.removeAllViews();
@@ -244,8 +254,8 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     private void SetImageView2() {
         //create imageView for match image
         if (!bImage2) {
-            FrameLayout layout2 = (FrameLayout) findViewById(com.accurascan.facematch.R.id.ivFaceLayout);
-            ImageView ivFace = (ImageView) findViewById(com.accurascan.facematch.R.id.ivFace);
+            FrameLayout layout2 = (FrameLayout) findViewById(R.id.ivFaceLayout);
+            ImageView ivFace = (ImageView) findViewById(R.id.ivFace);
             image2.getLayoutParams().height = ivFace.getHeight();
             image2.requestLayout();
             layout2.removeAllViews();
@@ -264,6 +274,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
 
     @Override
     public void onSetInputImage(Bitmap src1) {
+        if (image1.getImage() != null && !image1.getImage().isRecycled()) image1.getImage().recycle();
         image1.setImage(src1);
         SetImageView1();
     }
@@ -271,13 +282,14 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
 
     @Override
     public void onSetMatchImage(Bitmap src2) {
+        if (image2.getImage() != null && !image2.getImage().isRecycled()) image2.getImage().recycle();
         image2.setImage(src2);
         SetImageView2();
     }
 
     @Override
     public void onInitEngine(int ret) {
-        AccuraLog.loge("Activity+TAG", "onInitEngine: " + ret );
+        AccuraLog.loge("Activity TAG", "onInitEngine: " + ret );
     }
 
     //call if face detect
@@ -285,6 +297,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
     public void onLeftDetect(FaceDetectionResult faceResult) {
         if (faceResult != null) {
             image1.setFaceDetectionResult(faceResult);
+            if (image1.getImage() != null && !image1.getImage().isRecycled()) image1.getImage().recycle();
             image1.setImage(BitmapHelper.createFromARGB(faceResult.getNewImg(), faceResult.getNewWidth(), faceResult.getNewHeight()));
             image1.requestLayout();
         } else {
@@ -294,7 +307,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
             }
 
         }
-        helper.onLeftDetect(faceResult);
+        //helper.onLeftDetect(faceResult);
     }
 
     //call if face detect
@@ -303,6 +316,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
         if (faceResult != null) {
             if (image2 != null) {
                 image2.setFaceDetectionResult(faceResult);
+                if (image2.getImage() != null && !image2.getImage().isRecycled()) image2.getImage().recycle();
                 image2.setImage(BitmapHelper.createFromARGB(faceResult.getNewImg(), faceResult.getNewWidth(), faceResult.getNewHeight()));
                 image2.requestLayout();
             }
@@ -312,7 +326,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback, Fac
                 image2.setFaceDetectionResult(null);
             }
         }
-        helper.onRightDetect(faceResult);
+        //helper.onRightDetect(faceResult);
     }
 
     @Override

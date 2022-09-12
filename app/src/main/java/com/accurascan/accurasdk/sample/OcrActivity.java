@@ -87,7 +87,6 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
         super.onCreate(savedInstanceState);
-        setTheme(R.style.AppThemeNoActionBar);
         requestWindowFeature(Window.FEATURE_NO_TITLE); // Hide the window title.
         setContentView(R.layout.ocr_activity);
         AccuraLog.loge(TAG, "Start Camera Activity");
@@ -134,6 +133,9 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
             cameraView.setCountryId(countryId);
         } else if (recogType == RecogType.MRZ) {
             cameraView.setMRZDocumentType(mrzType);
+            // Pass 'all' for accepting MRZs of all countries
+            // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- IND, USA, TUN, etc.
+            cameraView.setMRZCountryCodeList("all");
         }
         cameraView.setRecogType(recogType)
                 .setView(linearLayout) // To add camera view
