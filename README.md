@@ -1,11 +1,11 @@
 # Accura KYC Android SDK - OCR, Face Match & Liveness Check
 Android KYC SDK - OCR &amp; Face Match <br/><br/>
 Accura OCR is used for Optical character recognition.<br/><br/>
-Accura Face Match is used for Matching 2 Faces. Source and Target. It matches the User Image from a Selfie vs User Image in document.<br/><br/>
-Accura Authentication is used for your customer verification and authentication.Unlock the True Identity of Your Users with 3D Selfie Technology<br/><br/>
+Accura Face Match is used for Matching 2 Faces, Source face and Target face. It matches the User Image from a Selfie vs User Image in document.<br/><br/>
+Accura Authentication is used for your customer verification and authentication. Unlock the True Identity of Your Users with 3D Selfie Technology<br/><br/>
 
 
-Below steps to setup Accura SDK's to your project.
+Below steps to setup Accura's SDK to your project.
 
 ## Install SDK in to your App
 
@@ -65,7 +65,7 @@ Below steps to setup Accura SDK's to your project.
         implementation 'com.github.accurascan:AccuraOCR:3.4.3'
         // for Accura Face Match
         implementation 'com.github.accurascan:AccuraFaceMatch:3.2.0'
-        // for liveness
+        // for Accura liveness
 		implementation 'com.github.accurascan:Liveness-Android:3.2.0'
     }
 
@@ -212,6 +212,10 @@ private void initCamera() {
         // 3. ID card MRZ document   - MRZDocumentType.ID_CARD_MRZ 
         // 4. Visa MRZ document      - MRZDocumentType.VISA_MRZ    
         cameraView.setMRZDocumentType(mrzDocumentType);
+        
+        // Pass 'all' for accepting MRZs of all countries
+        // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- IND, USA, TUN, etc.
+        cameraView.setMRZCountryCodeList("all");
     }
     cameraView.setRecogType(recogType)
             .setView(linearLayout) // To add camera view
@@ -550,14 +554,14 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
             helper.getFaceMatchScore(uri1, uri2);
 
 
-            // also use some other method for for face match
-            // must have to helper.setInputImage first and then helper.setMatchImage
+            // also use some other method for face match
+            // Make sure to call "helper.setInputImage" first, followed by "helper.setMatchImage".
             // helper.setInputImage(uri1);
             // helper.setMatchImage(uri2);
         
         }
     });
-    // Override methods of FaceMatchCallBack
+    // Override methods for FaceCallback
 
     @Override
     public void onFaceMatch(float score) {
@@ -577,14 +581,10 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
         image2.setImageBitmap(src2);
     }
 
-    // Override methods for FaceCallback
-
     @Override
     public void onInitEngine(int ret) {
     }
 
-    //call if face detect
-    
     @Override
     public void onLeftDetect(FaceDetectionResult faceResult) {
         if (faceResult != null) {
@@ -592,7 +592,6 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
         }
     }
 
-    //call if face detect
     @Override
     public void onRightDetect(FaceDetectionResult faceResult) {
         if (faceResult != null) {

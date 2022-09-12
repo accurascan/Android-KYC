@@ -133,6 +133,9 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
             cameraView.setCountryId(countryId);
         } else if (recogType == RecogType.MRZ) {
             cameraView.setMRZDocumentType(mrzType);
+            // Pass 'all' for accepting MRZs of all countries
+            // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- IND, USA, TUN, etc.
+            cameraView.setMRZCountryCodeList("all");
         }
         cameraView.setRecogType(recogType)
                 .setView(linearLayout) // To add camera view
