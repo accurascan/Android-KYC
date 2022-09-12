@@ -66,7 +66,7 @@ Below steps to setup Accura's SDK to your project.
         // for Accura Face Match
         implementation 'com.github.accurascan:AccuraFaceMatch:3.2.0'
         // for Accura liveness
-		implementation 'com.github.accurascan:Liveness-Android:3.2.0'
+        implementation 'com.github.accurascan:Liveness-Android:3.2.0'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -214,7 +214,7 @@ private void initCamera() {
         cameraView.setMRZDocumentType(mrzDocumentType);
         
         // Pass 'all' for accepting MRZs of all countries
-        // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- IND, USA, TUN, etc.
+        // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- 'IND', 'USA', 'TUN', etc.
         cameraView.setMRZCountryCodeList("all");
     }
     cameraView.setRecogType(recogType)
