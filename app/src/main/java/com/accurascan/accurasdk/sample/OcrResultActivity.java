@@ -603,7 +603,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                 public void run() {
 
                     if (face1 != null) {
-                        faceHelper.setInputImage(face1);
+                        faceHelper.setInputImage(face1.copy(Bitmap.Config.ARGB_8888, false));
 
                         if (result.getFaceBiometrics() != null) {
                             if (result.getLivenessResult() == null) {
@@ -634,7 +634,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                 public void run() {
                     setLivenessData("0.00");
                     if (faceHelper!=null && face1 != null) {
-                        faceHelper.setInputImage(face1);
+                        faceHelper.setInputImage(face1.copy(Bitmap.Config.ARGB_8888, false));
                     }
 
                     if (result.getFaceBiometrics() != null) {
