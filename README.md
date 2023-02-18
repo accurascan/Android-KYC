@@ -130,12 +130,6 @@ Below steps to setup Accura's SDK to your project.
 		// Set min and max percentage for glare
 		recogEngine.setGlarePercentage(Context context, int /*minPercentage*/6, int /*maxPercentage*/98);
 		```
-   * Set Photo Copy to allow photocopy document or not
-
-        ```
-		// Set min and max percentage for glare
-		recogEngine.isCheckPhotoCopy(Context context, boolean /*isCheckPhotoCopy*/false);
-		```
    * Set Hologram detection to verify the hologram on the face
 
         ```
