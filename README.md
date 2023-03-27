@@ -1,11 +1,10 @@
-# Accura KYC Android SDK - OCR, Face Match & Liveness Check
-Android KYC SDK - OCR &amp; Face Match <br/><br/>
-Accura OCR is used for Optical character recognition.<br/><br/>
-Accura Face Match is used for Matching 2 Faces, Source face and Target face. It matches the User Image from a Selfie vs User Image in document.<br/><br/>
-Accura Authentication is used for your customer verification and authentication. Unlock the True Identity of Your Users with 3D Selfie Technology<br/><br/>
+# AccuraScan's Android SDK for KYC & ID Verification - OCR, Face Biometrics and Liveness Check
 
+1. High Accuracy OCR (Optical Character Recognition) Includes English, Latin, Chinese, Korean and Japanese Languages.
+2. Face Biometrics Is Used for Matching Both The Source And The Target Image. It Matches the User's Selfie Image with The Image on The Document.
+3. User Authentication and Liveness Check Is Used for Customer Verification and Authentication. It Protects You from Identity Theft & Spoofing Attacks Through the Use of Active and Passive Selfie Technology for Liveness Check.
 
-Below steps to setup Accura's SDK to your project.
+Below steps to setup AccuraScan's SDK to your project.
 
 ## Install SDK in to your App
 
@@ -62,11 +61,11 @@ Below steps to setup Accura's SDK to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:5.0.2'
+        implementation 'com.github.accurascan:AccuraOCR:5.1.0'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.0'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.1'
         // for Accura liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.2.0'
+        implementation 'com.github.accurascan:Liveness-Android:3.2.1'
     }
 
 #### Step 4: Add files to project assets folder:
