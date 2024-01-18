@@ -6,6 +6,7 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="false"
@@ -14,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme.NoActionBar"
         tools:replace="android:theme,android:label">
         <activity android:name=".SplashActivity"

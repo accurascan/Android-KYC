@@ -67,9 +67,10 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     // For Accura OCR SDK
-    implementation 'com.github.accurascan:AccuraOCR:5.1.0'
+    implementation 'com.github.accurascan:AccuraOCR:6.0.0'
     // For Accura Face match
-    implementation 'com.github.accurascan:AccuraFaceMatch:3.2.1'
+    implementation 'com.github.accurascan:AccuraFaceMatch:3.2.2'
     // for liveness
-    implementation 'com.github.accurascan:Liveness-Android:3.2.1'
+    implementation 'com.github.accurascan:Liveness-Android:3.3.2'
+
 }

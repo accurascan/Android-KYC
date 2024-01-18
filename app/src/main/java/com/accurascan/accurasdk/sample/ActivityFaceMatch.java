@@ -3,12 +3,16 @@ package com.accurascan.accurasdk.sample;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
@@ -18,6 +22,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facematch.customview.CustomTextView;
 import com.accurascan.facematch.customview.FaceImageview;
 import com.accurascan.facematch.util.BitmapHelper;
@@ -30,6 +35,10 @@ import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
 import java.text.NumberFormat;
 
 public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
@@ -46,6 +55,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
     final private int CAPTURE_IMAGE = 2; //request code of capture image in camera
     private static final int ACCURA_FACEMATCH_CAMERA = 3;
     private FaceHelper helper;
+    private String faceParams;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +69,19 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
             }
         });
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        faceParams = sharedPreferences.getString(DownloadUtils.FACE_PARAMS, "");
+        String faceLicense = sharedPreferences.getString(DownloadUtils.FM_LICENSE_PATH, "");
+
+        Log.e("TAG", "onCreate: " + faceLicense + "," + faceParams);
+
         helper = new FaceHelper(this);
         helper.setFaceMatchCallBack(this);
-        helper.initEngine();
+        if (!TextUtils.isEmpty(faceLicense) && new File(faceLicense).exists()) {
+            helper.initEngine(faceLicense);
+        } else {
+            helper.initEngine();
+        }
         if (Utils.isPermissionsGranted(this)) {
             init();
         } else {
@@ -177,9 +197,20 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
         //cameraScreenCustomization.logoIcon = R.drawable.accura_fm_logo; // To set your custom logo
 
         //cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
-        cameraScreenCustomization.setLowLightTolerence(-1);
-        cameraScreenCustomization.setBlurPercentage(80);
-        cameraScreenCustomization.setGlarePercentage(-1, -1);
+        if (faceParams != null && !faceParams.isEmpty()) {
+            try {
+                JSONObject object = new JSONObject(faceParams);
+                cameraScreenCustomization.setLowLightTolerence(object.getInt("setLowLightTolerence"));
+                cameraScreenCustomization.setBlurPercentage(object.getInt("setBlurPercentage"));
+                cameraScreenCustomization.setGlarePercentage(object.getInt("setMinGlarePercentage"), object.getInt("setMaxGlarePercentage"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            cameraScreenCustomization.setLowLightTolerence(-1);
+            cameraScreenCustomization.setBlurPercentage(80);
+            cameraScreenCustomization.setGlarePercentage(-1, -1);
+        }
 
         Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);

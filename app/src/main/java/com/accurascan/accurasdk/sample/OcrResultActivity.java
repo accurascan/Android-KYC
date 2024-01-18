@@ -1,11 +1,14 @@
 package com.accurascan.accurasdk.sample;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+
+import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
@@ -32,6 +37,11 @@ import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+
 public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
     Bitmap face1;
@@ -47,6 +57,8 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     private FaceHelper faceHelper;
     private TextView tvFaceMatchScore, tvLivenessScore, tv_security;
     private boolean isFaceMatch = false, isLiveness = false;
+    private String faceParams;
+    private String faceLicense;
 
     protected void onCreate(Bundle savedInstanceState) {
         if (getIntent().getIntExtra("app_orientation", 1) != 0) {
@@ -56,6 +68,12 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ocr_result);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        faceParams = sharedPreferences.getString(DownloadUtils.FACE_PARAMS, "");
+        faceLicense = sharedPreferences.getString(DownloadUtils.FM_LICENSE_PATH, "");
+
+        Log.e("TAG", "onCreate: " + faceLicense + "," + faceParams);
 
         initUI();
         RecogType recogType = RecogType.detachFrom(getIntent());
@@ -753,7 +771,11 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         if (faceHelper == null) {
             faceHelper = new FaceHelper(this);
             faceHelper.setFaceMatchCallBack(this);
-            faceHelper.initEngine();
+            if (!TextUtils.isEmpty(faceLicense) && new File(faceLicense).exists()) {
+                faceHelper.initEngine(faceLicense);
+            } else {
+                faceHelper.initEngine();
+            }
         } else {
             performClick(isFaceMatch, isLiveness);
         }
@@ -789,11 +811,22 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         //livenessCustomization.logoIcon = R.drawable.accura_liveness_logo; // To set your custom logo
         //livenessCustomization.facing = LivenessCustomization.CAMERA_FACING_FRONT;
 
-        livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
-        livenessCustomization.setBlurPercentage(80);
-        livenessCustomization.setGlarePercentage(-1, -1);
+        if (faceParams != null && !faceParams.isEmpty()) {
+            try {
+                JSONObject object = new JSONObject(faceParams);
+                livenessCustomization.setLowLightTolerence(object.getInt("setLowLightTolerence"));
+                livenessCustomization.setBlurPercentage(object.getInt("setBlurPercentage"));
+                livenessCustomization.setGlarePercentage(object.getInt("setMinGlarePercentage"), object.getInt("setMaxGlarePercentage"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
+            livenessCustomization.setBlurPercentage(80);
+            livenessCustomization.setGlarePercentage(-1, -1);
+        }
 
-        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url");
+        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
@@ -822,9 +855,20 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         //cameraScreenCustomization.logoIcon = R.drawable.accura_fm_logo; // To set your custom logo
 
         //cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
-        cameraScreenCustomization.setLowLightTolerence(-1);
-        cameraScreenCustomization.setBlurPercentage(80);
-        cameraScreenCustomization.setGlarePercentage(-1, -1);
+        if (faceParams != null && !faceParams.isEmpty()) {
+            try {
+                JSONObject object = new JSONObject(faceParams);
+                cameraScreenCustomization.setLowLightTolerence(object.getInt("setLowLightTolerence"));
+                cameraScreenCustomization.setBlurPercentage(object.getInt("setBlurPercentage"));
+                cameraScreenCustomization.setGlarePercentage(object.getInt("setMinGlarePercentage"), object.getInt("setMaxGlarePercentage"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            cameraScreenCustomization.setLowLightTolerence(-1);
+            cameraScreenCustomization.setBlurPercentage(80);
+            cameraScreenCustomization.setGlarePercentage(-1, -1);
+        }
 
         Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
