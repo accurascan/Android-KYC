@@ -1,11 +1,18 @@
 package com.accurascan.accurasdk.sample;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,14 +22,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+
+import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
+import com.accurascan.facedetection.model.AccuraLivenessResult;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
+import com.accurascan.facedetection.utils.AccuraLivenessLog;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
 import com.accurascan.ocr.mrz.model.RecogResult;
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.common.Priority;
+import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.bumptech.glide.Glide;
 import com.docrecog.scan.RecogType;
 import com.facedetection.FMCameraScreenCustomization;
@@ -31,6 +46,13 @@ import com.facedetection.model.AccuraFMCameraModel;
 import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
@@ -47,6 +69,8 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     private FaceHelper faceHelper;
     private TextView tvFaceMatchScore, tvLivenessScore, tv_security;
     private boolean isFaceMatch = false, isLiveness = false;
+    private String faceParams;
+    private String faceLicense;
 
     protected void onCreate(Bundle savedInstanceState) {
         if (getIntent().getIntExtra("app_orientation", 1) != 0) {
@@ -56,6 +80,12 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ocr_result);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        faceParams = sharedPreferences.getString(DownloadUtils.FACE_PARAMS, "");
+        faceLicense = sharedPreferences.getString(DownloadUtils.FM_LICENSE_PATH, "");
+
+        Log.e("TAG", "onCreate: " + faceLicense + "," + faceParams);
 
         initUI();
         RecogType recogType = RecogType.detachFrom(getIntent());
@@ -665,7 +695,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                     return;
                 }
                 if (result.getStatus().equals("1")) {
-                    handleVerificationSuccessResult(result);
+                    checkLiveness(result.getFaceUri(), result);
                 } else {
                     Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -753,7 +783,11 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         if (faceHelper == null) {
             faceHelper = new FaceHelper(this);
             faceHelper.setFaceMatchCallBack(this);
-            faceHelper.initEngine();
+            if (!TextUtils.isEmpty(faceLicense) && new File(faceLicense).exists()) {
+                faceHelper.initEngine(faceLicense);
+            } else {
+                faceHelper.initEngine();
+            }
         } else {
             performClick(isFaceMatch, isLiveness);
         }
@@ -789,11 +823,22 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         //livenessCustomization.logoIcon = R.drawable.accura_liveness_logo; // To set your custom logo
         //livenessCustomization.facing = LivenessCustomization.CAMERA_FACING_FRONT;
 
-        livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
-        livenessCustomization.setBlurPercentage(80);
-        livenessCustomization.setGlarePercentage(-1, -1);
+        if (faceParams != null && !faceParams.isEmpty()) {
+            try {
+                JSONObject object = new JSONObject(faceParams);
+                livenessCustomization.setLowLightTolerence(object.getInt("setLowLightTolerence"));
+                livenessCustomization.setBlurPercentage(object.getInt("setBlurPercentage"));
+                livenessCustomization.setGlarePercentage(object.getInt("setMinGlarePercentage"), object.getInt("setMaxGlarePercentage"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            livenessCustomization.setLowLightTolerence(-1/*lowLightTolerence*/);
+            livenessCustomization.setBlurPercentage(80);
+            livenessCustomization.setGlarePercentage(-1, -1);
+        }
 
-        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url");
+        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
@@ -822,9 +867,20 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         //cameraScreenCustomization.logoIcon = R.drawable.accura_fm_logo; // To set your custom logo
 
         //cameraScreenCustomization.facing = FMCameraScreenCustomization.CAMERA_FACING_FRONT;
-        cameraScreenCustomization.setLowLightTolerence(-1);
-        cameraScreenCustomization.setBlurPercentage(80);
-        cameraScreenCustomization.setGlarePercentage(-1, -1);
+        if (faceParams != null && !faceParams.isEmpty()) {
+            try {
+                JSONObject object = new JSONObject(faceParams);
+                cameraScreenCustomization.setLowLightTolerence(object.getInt("setLowLightTolerence"));
+                cameraScreenCustomization.setBlurPercentage(object.getInt("setBlurPercentage"));
+                cameraScreenCustomization.setGlarePercentage(object.getInt("setMinGlarePercentage"), object.getInt("setMaxGlarePercentage"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            cameraScreenCustomization.setLowLightTolerence(-1);
+            cameraScreenCustomization.setBlurPercentage(80);
+            cameraScreenCustomization.setGlarePercentage(-1, -1);
+        }
 
         Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
@@ -850,7 +906,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
     @Override
     public void onInitEngine(int i) {
-        if (i != -1) {
+        if (i >= 0) {
             performClick(isFaceMatch, isLiveness);
         }
     }
@@ -877,6 +933,70 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     @Override
     public void onExtractInit(int i) {
 
+    }
+
+    private void checkLiveness(Uri uri, AccuraVerificationResult verificationResult) {
+        NetworkInfo activeNetworkInfo = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+        if (!(activeNetworkInfo != null && activeNetworkInfo.isConnected())) {
+            verificationResult.setStatus("0");
+            verificationResult.setErrorMessage("Please check your internet connection");
+            verificationResult.setLivenessResult(null);
+            verificationResult.setFaceBiometric(null);
+            verificationResult.setFaceBiometrics(null);
+            Intent intent = new Intent();
+            intent.putExtra("Accura.liveness", verificationResult);
+            setResult(RESULT_OK, intent);
+            finish();
+            return;
+        }
+        AccuraLivenessResult livenessResult = new AccuraLivenessResult();
+        showProgressDialog();
+        Map<String, String> jsonObject = new HashMap<>();
+
+        Map<String, File> multiPartFileMap = new HashMap<>();
+        File file = null;
+        try {
+            file = new File(uri.getPath());
+            multiPartFileMap.put("liveness_image", file);
+        } catch (Exception e) {
+        }
+
+        if (!multiPartFileMap.isEmpty()) {
+            AndroidNetworking.upload("")
+                    .addMultipartFile(multiPartFileMap)
+                    .addMultipartParameter(jsonObject)
+                    .setPriority(Priority.HIGH)
+                    .build()
+                    .getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            dismissProgressDialog();
+                            if (response != null) {
+                                livenessResult.setLivenessStatus(false);
+                                try {
+                                    if (response.has("probability")) {
+                                        livenessResult.setLivenessStatus(true);
+                                        livenessResult.setLivenessScore(response.getDouble("probability"));
+                                        verificationResult.setLivenessResult(livenessResult);
+                                        handleVerificationSuccessResult(verificationResult);
+                                        return;
+                                    }
+                                } catch (JSONException e) {
+                                    AccuraLivenessLog.loge("TAG", Log.getStackTraceString(e));
+                                }
+                            }
+                            Toast.makeText(OcrResultActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onError(ANError error) {
+                            dismissProgressDialog();
+                            Toast.makeText(OcrResultActivity.this, "Please try again" + Log.getStackTraceString(error), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } else {
+            dismissProgressDialog();
+        }
     }
 
 }

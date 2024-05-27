@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -14,6 +15,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,6 +37,7 @@ import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facedetection.utils.AccuraLivenessLog;
 import com.accurascan.ocr.mrz.model.ContryModel;
 import com.accurascan.ocr.mrz.util.AccuraLog;
@@ -40,8 +45,9 @@ import com.docrecog.scan.MRZDocumentType;
 import com.docrecog.scan.RecogEngine;
 import com.docrecog.scan.RecogType;
 
-import java.io.File;
-import java.io.IOException;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private ProgressDialog progressBar;
+    private String keyLicenseFile;
+    private String cardParams;
 
     private static class MyHandler extends Handler {
         private final WeakReference<MainActivity> mActivity;
@@ -112,7 +120,11 @@ public class MainActivity extends AppCompatActivity {
                     AccuraLivenessLog.setDEBUG(true);
                     AccuraLog.refreshLogfile(activity);
                     recogEngine.setDialog(false); // setDialog(false) To set your custom dialog for license validation
-                    activity.sdkModel = recogEngine.initEngine(activity);
+                    if (TextUtils.isEmpty(activity.keyLicenseFile)) {
+                        activity.sdkModel = recogEngine.initEngine(activity);
+                    } else {
+                        activity.sdkModel = recogEngine.initEngine(activity, activity.keyLicenseFile);
+                    }
                     AccuraLog.loge(TAG, "Initialized Engine : " + activity.sdkModel.i + " -> " + activity.sdkModel.message);
                     activity.responseMessage = activity.sdkModel.message;
 
@@ -122,14 +134,29 @@ public class MainActivity extends AppCompatActivity {
                         if (activity.sdkModel.isOCREnable)
                             activity.modelList = recogEngine.getCardList(activity);
 
-                        recogEngine.setBlurPercentage(activity, 62);
-                        recogEngine.setFaceBlurPercentage(activity, 70);
-                        recogEngine.setGlarePercentage(activity, 6, 98);
-                        recogEngine.isCheckPhotoCopy(activity, false);
-                        recogEngine.SetHologramDetection(activity, true);
-                        recogEngine.setLowLightTolerance(activity, 39);
-                        recogEngine.setMotionThreshold(activity, 18);
-
+                        if (!TextUtils.isEmpty(activity.cardParams)) {
+                            JSONObject object = new JSONObject(activity.cardParams);
+                            Log.e(TAG, "run: " + object);
+                            try {
+                                recogEngine.setBlurPercentage(activity, object.getInt("setBlurPercentage"));
+                                recogEngine.setFaceBlurPercentage(activity, object.getInt("setFaceBlurPercentage"));
+                                recogEngine.setGlarePercentage(activity, 6, 98);
+                                recogEngine.isCheckPhotoCopy(activity, object.getBoolean("isCheckPhotoCopy"));
+                                recogEngine.SetHologramDetection(activity, object.getBoolean("SetHologramDetection"));
+                                recogEngine.setLowLightTolerance(activity, object.getInt("setLowLightTolerance"));
+                                recogEngine.setMotionThreshold(activity, object.getInt("setMotionThreshold"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            recogEngine.setBlurPercentage(activity, 62);
+                            recogEngine.setFaceBlurPercentage(activity, 70);
+                            recogEngine.setGlarePercentage(activity, 6, 98);
+                            recogEngine.isCheckPhotoCopy(activity, false);
+                            recogEngine.SetHologramDetection(activity, true);
+                            recogEngine.setLowLightTolerance(activity, 39);
+                            recogEngine.setMotionThreshold(activity, 18);
+                        }
                         activity.handler.sendEmptyMessage(1);
                     } else
                         activity.handler.sendEmptyMessage(0);
@@ -141,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Thread nativeThread = new NativeThread(this);
+    private NativeThread nativeThread = new NativeThread(this);
     private RecyclerView rvCountry, rvCards;
     private LinearLayoutManager lmCountry, lmCard;
     private CardListAdpter countryAdapter, cardAdapter;
@@ -177,6 +204,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        keyLicenseFile = sharedPreferences.getString(DownloadUtils.LICENSE_PATH, "");
+        cardParams = sharedPreferences.getString(DownloadUtils.CARD_PARAMS, "");
+        Log.e(TAG, "onCreate: " + keyLicenseFile + "," + cardParams);
 
         scrollView = findViewById(R.id.scroll_view);
         btnMrz = findViewById(R.id.lout_mrz);
