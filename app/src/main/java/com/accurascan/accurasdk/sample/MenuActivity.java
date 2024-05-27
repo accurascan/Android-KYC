@@ -26,9 +26,7 @@ import com.accurascan.accurasdk.sample.download.DownloadListener;
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facematch.util.Utils;
 import com.accurascan.ocr.mrz.util.AccuraLog;
-import com.accurascan.ocr.mrz.util.Util;
 import com.androidnetworking.error.ANError;
-import com.inet.facelock.callback.FaceHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;

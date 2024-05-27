@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                         if (activity.sdkModel.isOCREnable)
                             activity.modelList = recogEngine.getCardList(activity);
 
-                        if (activity.cardParams != null) {
+                        if (!TextUtils.isEmpty(activity.cardParams)) {
                             JSONObject object = new JSONObject(activity.cardParams);
                             Log.e(TAG, "run: " + object);
                             try {

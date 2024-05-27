@@ -72,5 +72,5 @@ dependencies {
     implementation 'com.github.accurascan:AccuraFaceMatch:3.2.2'
     // for liveness
     implementation 'com.github.accurascan:Liveness-Android:3.3.2'
-
+    implementation 'com.amitshekhar.android:android-networking:1.0.2'
 }
