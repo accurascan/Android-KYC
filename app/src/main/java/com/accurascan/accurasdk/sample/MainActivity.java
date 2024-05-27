@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
                         activity.btnPassportMrz.setVisibility(View.VISIBLE);
                         activity.btnMrz.setVisibility(View.VISIBLE);
                     }
-                    if (activity.sdkModel.isBankCardEnable)
-                        activity.btnBank.setVisibility(View.VISIBLE);
+//                    if (activity.sdkModel.isBankCardEnable)
+//                        activity.btnBank.setVisibility(View.VISIBLE);
                     if (activity.sdkModel.isAllBarcodeEnable)
                         activity.btnBarcode.setVisibility(View.VISIBLE);
                     if (activity.sdkModel.isOCREnable && activity.modelList != null) {
@@ -192,6 +192,34 @@ public class MainActivity extends AppCompatActivity {
 
     private void setCountryLayout() {
 //        contryList = new ArrayList<>();
+        ContryModel.CardModel _cardModel = null;
+        int pos = -1;
+        for (int i = 0; i < modelList.size(); i++) {
+            if (modelList.get(i).getCountry_id() == 159) {
+                _cardModel = modelList.get(i).getCards().get(0);
+                pos = i;
+                break;
+            }
+        }
+        if (pos >= 0) {
+            int contryId = modelList.get(pos).getCountry_id();
+            modelList.remove(pos);
+            TextView loutSaintKittsMrz = findViewById(R.id.lout_saintkitts_mrz);
+            loutSaintKittsMrz.setText(_cardModel.getCard_name());
+            loutSaintKittsMrz.setVisibility(View.VISIBLE);
+            ContryModel.CardModel final_cardModel = _cardModel;
+            loutSaintKittsMrz.setOnClickListener(view -> {
+
+                Intent intent = new Intent(MainActivity.this, OcrActivity.class);
+                intent.putExtra("country_id", contryId);
+                intent.putExtra("card_id", final_cardModel.getCard_id());
+                intent.putExtra("card_name", final_cardModel.getCard_name());
+                RecogType.OCR.attachTo(intent);
+                intent.putExtra("app_orientation", getRequestedOrientation());
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+            });
+        }
         contryList.clear();
         contryList.addAll(modelList);
         countryAdapter.notifyDataSetChanged();

@@ -24,6 +24,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
+import com.accurascan.accurasdk.sample.util.ArabicApiUtils;
 import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraLivenessResult;
@@ -94,7 +95,31 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             // RecogType.OCR
             OcrData ocrData = OcrData.getOcrResult();
             if (ocrData != null) {
-                setOcrData(ocrData);
+
+                ly_front.setVisibility(View.GONE);
+                ly_back.setVisibility(View.GONE);
+                loutFaceImageContainer.setVisibility(View.GONE);
+                ly_auth_container.setVisibility(View.GONE);
+                int countryId = getIntent().getIntExtra("country_id", -1);
+                String countryCode = null;
+                if (countryId == 9) countryCode = "KWT";
+                else if (countryId == 26) countryCode = "BHR";
+                if (countryCode != null && ocrData.getFrontData() != null) {
+                    ArabicApiUtils.getInstance(new ArabicApiUtils.SCAN_RESULT() {
+                        @Override
+                        public void onSuccess(String id, String message) {
+                            setOcrData(ocrData);
+                        }
+
+                        @Override
+                        public void onFailed(String s) {
+                            setOcrData(ocrData);
+                        }
+
+                    }).getArabicApiData(1, this, countryCode, ocrData, "add your url", 60);
+                } else {
+                    setOcrData(ocrData);
+                }
             }
         } else if (recogType == RecogType.BANKCARD) {
             ly_back.setVisibility(View.GONE);
@@ -277,6 +302,11 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
          *
          *
          */
+
+        ly_front.setVisibility(View.VISIBLE);
+        ly_back.setVisibility(View.VISIBLE);
+        loutFaceImageContainer.setVisibility(View.VISIBLE);
+        ly_auth_container.setVisibility(View.VISIBLE);
 
         OcrData.MapData frontData = ocrData.getFrontData();
         OcrData.MapData backData = ocrData.getBackData();

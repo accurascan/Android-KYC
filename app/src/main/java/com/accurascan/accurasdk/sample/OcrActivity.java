@@ -289,6 +289,7 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
         Intent intent = new Intent(this, OcrResultActivity.class);
         recogType.attachTo(intent);
         intent.putExtra("app_orientation", getRequestedOrientation());
+        intent.putExtra("country_id", countryId);
         startActivityForResult(intent, 101);
     }
 

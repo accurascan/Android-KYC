@@ -67,11 +67,7 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Utils.isPermissionsGranted(this)) {
-            requestCameraPermission();
-        } else {
-            download();
-        }
+        requestCameraPermission();
     }
 
     public void requestCameraPermission() {
