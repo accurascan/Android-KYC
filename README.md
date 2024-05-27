@@ -452,6 +452,43 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
 }
 ```
 
+#### Step 3 : Api calling Part for Kuwait and Bahrain card
+
+##### Method 1 :
+* Download and Copy [ArabicApiUtils.java](https://github.com/accurascan/Android-KYC/blob/arabic_ocr/app/src/main/java/com/accurascan/accurasdk/sample/util/ArabicApiUtils.java) file to your project
+```
+     String countryCode = null;
+     if (countryId == 9) countryCode = "KWT";
+     else if (countryId == 26) countryCode = "BHR";
+     if (countryCode != null && ocrData.getFrontData() != null) {
+          ArabicApiUtils.getInstance(new ArabicApiUtils.SCAN_RESULT() {
+              @Override
+              public void onSuccess(String id, String message) {
+                  // display(ocrData) details;
+              }
+          
+              @Override
+              public void onFailed(String s) {
+                  // display(ocrData) details;
+              }
+          
+          }).getArabicApiData(1, this, countryCode, ocrData, "add your url", 60);
+     } else {
+          // display(ocrData) details;
+     }
+```
+##### Method 2 : Api calling using other method or library
+```
+     //Require below two details for Arabic api 
+     Map<String, String> jsonObject = new HashMap<>();
+     jsonObject.put("country_code", countryCode);
+     
+     Map<String, File> multiPartFileMap = new HashMap<>();
+     multiPartFileMap.put("file", imageFile); // front or back image as upload file options
+     
+     // Used other method or library
+```
+
 ## 2. Setup Accura Face Match
 * Require `accuraface.license` to implement AccuraFaceMatch SDK in to your app
 
