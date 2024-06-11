@@ -29,17 +29,9 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     packagingOptions {
-        pickFirst 'lib/arm64-v8a/libcrypto.so'
-        pickFirst 'lib/arm64-v8a/libssl.so'
-
-        pickFirst 'lib/armeabi-v7a/libcrypto.so'
-        pickFirst 'lib/armeabi-v7a/libssl.so'
-
-        pickFirst 'lib/x86/libcrypto.so'
-        pickFirst 'lib/x86/libssl.so'
-
-        pickFirst 'lib/x86_64/libcrypto.so'
-        pickFirst 'lib/x86_64/libssl.so'
+        jniLibs {
+            pickFirsts += ['lib/arm64-v8a/libcrypto.so', 'lib/arm64-v8a/libssl.so', 'lib/armeabi-v7a/libcrypto.so', 'lib/armeabi-v7a/libssl.so', 'lib/x86/libcrypto.so', 'lib/x86/libssl.so', 'lib/x86_64/libcrypto.so', 'lib/x86_64/libssl.so']
+        }
     }
     splits {
         abi {
@@ -49,6 +41,7 @@ android {
             universalApk true
         }
     }
+    namespace 'com.accurascan.accurasdk.sample'
 
 }
 
