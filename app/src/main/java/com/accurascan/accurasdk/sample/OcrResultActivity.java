@@ -850,7 +850,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
     @Override
     public void onInitEngine(int i) {
-        if (i != -1) {
+        if (i >= 0) {
             performClick(isFaceMatch, isLiveness);
         }
     }

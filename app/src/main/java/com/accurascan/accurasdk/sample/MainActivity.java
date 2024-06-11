@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Thread nativeThread = new NativeThread(this);
+    private NativeThread nativeThread = new NativeThread(this);
     private RecyclerView rvCountry, rvCards;
     private LinearLayoutManager lmCountry, lmCard;
     private CardListAdpter countryAdapter, cardAdapter;

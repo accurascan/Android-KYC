@@ -23,7 +23,7 @@ Below steps to setup AccuraScan's SDK to your project.
 
 #### Step 2. Add the token to `gradle.properties`:
 
-    authToken=jp_ssguccab6c5ge2l4jitaj92ek2
+    authToken=jp_45kf9tvkijvd9c7cf34mehj1b6
 
 #### Step 3: Add the dependency:
     Set Accura SDK as a dependency to our app/build.gradle file.
@@ -40,8 +40,8 @@ Below steps to setup AccuraScan's SDK to your project.
             }
         }
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
         }
         packagingOptions {
             pickFirst 'lib/arm64-v8a/libcrypto.so'
@@ -60,12 +60,12 @@ Below steps to setup AccuraScan's SDK to your project.
     }
     dependencies {
         ...
-        // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:5.1.0'
-        // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.1'
-        // for Accura liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.2.1'
+        // Accura OCR
+        implementation 'com.github.accurascan:AccuraOCR:5.8.3'
+        // Accura Face match
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.7'
+        // Accura Liveness
+        implementation 'com.github.accurascan:Liveness-Android:3.4.7'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -73,7 +73,6 @@ Below steps to setup AccuraScan's SDK to your project.
     Create "assets" folder under app/src/main and Add license file in to assets folder.
     - key.license // for Accura OCR
     - accuraface.license // for Accura Face Match
-    Generate your Accura license from https://accurascan.com/developer/dashboard
 
 ## 1. Setup Accura OCR
 * Require `key.license` to implement Accura OCR in to your app
@@ -679,6 +678,7 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
                                                     
     // Set min and max percentage for glare or set it -1 to remove glare filter
     livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
+    livenessCustomization.setApiKey("add api key");
 
     // must have to call SelfieCameraActivity.getCustomIntent() to create intent
     Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your_url");
@@ -698,7 +698,7 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
                 if (result.getStatus().equals("1")) {
                     // result get bitmap of face by using following code
                     Bitmap bitmap = result.getFaceBiometrics();
-                    double livenessScore = result.getLivenessResult().getLivenessScore() * 100.0;
+                    double livenessScore = result.getLivenessResult().getLivenessScore();
                     Toast.makeText(this, "Liveness Score : " + livenessScore, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
