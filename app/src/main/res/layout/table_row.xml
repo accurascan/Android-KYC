@@ -17,7 +17,7 @@
         android:layout_marginEnd="@dimen/_15dp"
         >
 
-        <com.accurascan.ocr.mrz.customview.CustomTextView
+        <TextView
             android:id="@+id/tv_key"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -27,8 +27,7 @@
             android:textSize="15sp"
             android:singleLine="false"
             android:text="dsfdgfdgd"
-            android:textAllCaps="true"
-            app:typeface="ALLER_STD_REG"/>
+            android:textAllCaps="true"/>
 
         <RelativeLayout
             android:layout_width="0dp"
@@ -44,7 +43,7 @@
             <!--android:layout_centerVertical="true"-->
             <!--android:minHeight="40dp"/>-->
 
-            <com.accurascan.ocr.mrz.customview.CustomTextView
+            <TextView
                 android:id="@+id/tv_value"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -54,7 +53,6 @@
                 android:textColor="@color/lightGray"
                 android:textSize="15sp"
                 android:textAllCaps="true"
-                app:typeface="ALLER_STD_REG"
                 android:minHeight="40dp"/>
 
             <ImageView
