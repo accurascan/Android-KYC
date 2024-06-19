@@ -23,14 +23,14 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
-import com.accurascan.facematch.customview.CustomTextView;
-import com.accurascan.facematch.customview.FaceImageview;
+import com.accurascan.customview.CustomTextView;
+import com.accurascan.customview.FaceImageview;
+import com.accurascan.facedetection.LivenessCustomization;
+import com.accurascan.facedetection.SelfieCameraActivity;
+import com.accurascan.facedetection.model.AccuraVerificationResult;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.facematch.util.Utils;
 import com.accurascan.ocr.mrz.util.AccuraLog;
-import com.facedetection.FMCameraScreenCustomization;
-import com.facedetection.SelfieFMCameraActivity;
-import com.facedetection.model.AccuraFMCameraModel;
 import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
@@ -174,7 +174,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
 
 
     private void openFaceMatchCamera() {
-        FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
+        LivenessCustomization cameraScreenCustomization = new LivenessCustomization();
 
         cameraScreenCustomization.backGroundColor = getResources().getColor(R.color.fm_camera_Background);
         cameraScreenCustomization.closeIconColor = getResources().getColor(R.color.fm_camera_CloseIcon);
@@ -212,11 +212,11 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
             cameraScreenCustomization.setGlarePercentage(-1, -1);
         }
 
-        Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
+        Intent intent = SelfieCameraActivity.getFaceMatchCameraIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
     }
 
-    public void handleVerificationSuccessResult(final AccuraFMCameraModel result) {
+    public void handleVerificationSuccessResult(final AccuraVerificationResult result) {
         if (result != null) {
 //            showProgressDialog();
             Runnable runnable = new Runnable() {
@@ -256,7 +256,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
                 }
 
             } else if (requestCode == ACCURA_FACEMATCH_CAMERA) { // handle request code CAPTURE_IMAGE used for capture image in camera
-                AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
+                AccuraVerificationResult result = data.getParcelableExtra("Accura.fm");
                 if (result == null) {
                     return;
                 }

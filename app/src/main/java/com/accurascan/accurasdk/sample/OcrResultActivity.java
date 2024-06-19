@@ -41,9 +41,6 @@ import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.bumptech.glide.Glide;
 import com.docrecog.scan.RecogType;
-import com.facedetection.FMCameraScreenCustomization;
-import com.facedetection.SelfieFMCameraActivity;
-import com.facedetection.model.AccuraFMCameraModel;
 import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
@@ -687,7 +684,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         }
     }
 
-    public void handleVerificationSuccessResult(final AccuraFMCameraModel result) {
+    public void handleVerificationSuccessResult1(final AccuraVerificationResult result) {
         if (result != null) {
 //            showProgressDialog();
             Runnable runnable = new Runnable() {
@@ -730,12 +727,12 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                     Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else if (requestCode == 102) {
-                AccuraFMCameraModel result = data.getParcelableExtra("Accura.fm");
+                AccuraVerificationResult result = data.getParcelableExtra("Accura.fm");
                 if (result == null) {
                     return;
                 }
                 if (result.getStatus().equals("1")) {
-                    handleVerificationSuccessResult(result);
+                    handleVerificationSuccessResult1(result);
                 } else {
                     Toast.makeText(this, "Retry...", Toast.LENGTH_SHORT).show();
                 }
@@ -868,13 +865,13 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             livenessCustomization.setGlarePercentage(-1, -1);
         }
 
-        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+        Intent intent = SelfieCameraActivity.getLivenessCameraIntent(this, livenessCustomization);
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
     private void openCamera() {
 
-        FMCameraScreenCustomization cameraScreenCustomization = new FMCameraScreenCustomization();
+        LivenessCustomization cameraScreenCustomization = new LivenessCustomization();
 
         cameraScreenCustomization.backGroundColor = getResources().getColor(R.color.fm_camera_Background);
         cameraScreenCustomization.closeIconColor = getResources().getColor(R.color.fm_camera_CloseIcon);
@@ -912,7 +909,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             cameraScreenCustomization.setGlarePercentage(-1, -1);
         }
 
-        Intent intent = SelfieFMCameraActivity.getCustomIntent(this, cameraScreenCustomization);
+        Intent intent = SelfieCameraActivity.getFaceMatchCameraIntent(this, cameraScreenCustomization);
         startActivityForResult(intent, ACCURA_FACEMATCH_CAMERA);
 
     }
