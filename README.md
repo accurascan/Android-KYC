@@ -73,7 +73,6 @@ Below steps to setup AccuraScan's SDK to your project.
     Create "assets" folder under app/src/main and Add license file in to assets folder.
     - key.license // for Accura OCR
     - accuraface.license // for Accura Face Match
-    Generate your Accura license from https://accurascan.com/developer/dashboard
 
 ## 1. Setup Accura OCR
 * Require `key.license` to implement Accura OCR in to your app
