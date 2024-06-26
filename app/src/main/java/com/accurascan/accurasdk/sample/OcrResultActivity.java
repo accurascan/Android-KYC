@@ -951,7 +951,6 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         }
         AccuraLivenessResult livenessResult = new AccuraLivenessResult();
         showProgressDialog();
-        Map<String, String> jsonObject = new HashMap<>();
 
         Map<String, File> multiPartFileMap = new HashMap<>();
         File file = null;
@@ -962,9 +961,9 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         }
 
         if (!multiPartFileMap.isEmpty()) {
-            AndroidNetworking.upload("")
+            AndroidNetworking.upload("add liveness url")
+                    .addHeaders("Api-Key", "add your api key")
                     .addMultipartFile(multiPartFileMap)
-                    .addMultipartParameter(jsonObject)
                     .setPriority(Priority.HIGH)
                     .build()
                     .getAsJSONObject(new JSONObjectRequestListener() {
