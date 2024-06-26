@@ -26,7 +26,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <com.accurascan.ocr.mrz.customview.CustomTextView
+                <TextView
                     android:id="@+id/lout_passport_mrz"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -36,10 +36,9 @@
                     android:text="@string/passport_mrz"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    app:typeface="ALLER_STD_REG"
                     android:visibility="gone"/>
 
-                <com.accurascan.ocr.mrz.customview.CustomTextView
+                <TextView
                     android:id="@+id/lout_id_mrz"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -49,10 +48,9 @@
                     android:text="@string/id_mrz"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    app:typeface="ALLER_STD_REG"
                     android:visibility="gone"/>
 
-                <com.accurascan.ocr.mrz.customview.CustomTextView
+                <TextView
                     android:id="@+id/lout_visa_mrz"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -62,10 +60,9 @@
                     android:text="@string/visa_mrz"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    app:typeface="ALLER_STD_REG"
                     android:visibility="gone"/>
 
-                <com.accurascan.ocr.mrz.customview.CustomTextView
+                <TextView
                     android:id="@+id/lout_mrz"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -75,10 +72,9 @@
                     android:text="@string/other_mrz"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    app:typeface="ALLER_STD_REG"
                     android:visibility="gone"/>
 
-                <com.accurascan.ocr.mrz.customview.CustomTextView
+                <TextView
                     android:id="@+id/lout_bank"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -88,10 +84,9 @@
                     android:text="@string/bank_card"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    app:typeface="ALLER_STD_REG"
                     android:visibility="gone"/>
 
-                <com.accurascan.ocr.mrz.customview.CustomTextView
+                <TextView
                     android:id="@+id/lout_barcode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -101,7 +96,6 @@
                     android:text="Barcode"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    app:typeface="ALLER_STD_REG"
                     android:visibility="gone"/>
 
                 <androidx.recyclerview.widget.RecyclerView

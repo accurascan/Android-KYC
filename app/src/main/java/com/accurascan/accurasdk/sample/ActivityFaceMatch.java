@@ -17,13 +17,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
-import com.accurascan.facematch.customview.CustomTextView;
 import com.accurascan.facematch.customview.FaceImageview;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.facematch.util.Utils;
@@ -46,7 +46,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
 
     FaceImageview image1;
     FaceImageview image2;
-    CustomTextView txtScore;
+    TextView txtScore;
     boolean bImage2 = false;
     boolean bImage1 = false;
 
@@ -129,7 +129,7 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
             }
         });
 
-        txtScore = (CustomTextView) findViewById(R.id.tvScore);
+        txtScore = (TextView) findViewById(R.id.tvScore);
         txtScore.setText("Match Score : 0 %");
 
         image1 = new FaceImageview(this);  //initialize the view of front image

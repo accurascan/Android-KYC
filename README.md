@@ -61,9 +61,9 @@ Below steps to setup AccuraScan's SDK to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.0.0'
+        implementation 'com.github.accurascan:AccuraOCR:6.1.2'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.2'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.3'
         // for Accura liveness
         implementation 'com.github.accurascan:Liveness-Android:3.3.2'
     }

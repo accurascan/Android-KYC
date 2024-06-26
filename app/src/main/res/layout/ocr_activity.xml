@@ -25,7 +25,7 @@
         android:text="flip"
         android:src="@drawable/flip_camera_icon"/>
 
-    <com.accurascan.ocr.mrz.customview.CustomTextView
+    <TextView
         android:id="@+id/select_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,7 +40,6 @@
         android:text="SELECT BARCODE FORMAT"
         android:textColor="@color/white"
         android:textSize="@dimen/fifteen"
-        app:typeface="ALLER_STD_REG"
         android:visibility="gone"/>
 
 </RelativeLayout>
