@@ -108,6 +108,14 @@ Below steps to setup AccuraScan's SDK to your project.
         }
     }
 
+#### Optional: Load License File Dynamically
+If you prefer to place the license file dynamically, you can use the following method. This allows you to specify the license file path at runtime.
+For a demo of dynamic licensing, please refer to the **dynamic_license_demo** branch.
+```
+RecogEngine.SDKModel sdkModel = recogEngine.initEngine(activity, "your license filepath");
+
+```
+
 ##### Update filters like below.</br>
   Call this function after initialize sdk if license is valid(sdkModel.i > 0)
    * Set Blur Percentage to allow blur on document
@@ -596,6 +604,16 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
     }
 
     And take a look ActivityFaceMatch.java for full working example.
+
+
+#### Optional: Load License File Dynamically
+If you prefer to place the license file dynamically, you can use the following method. This allows you to specify the license file path at runtime.
+For a demo of dynamic licensing, please refer to the **dynamic_license_demo** branch.
+```
+faceHelper.initEngine(faceLicensePath);
+
+```
+
     
 #### Step 4 : Simple Usage to face match in your app.
 
