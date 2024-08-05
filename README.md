@@ -40,8 +40,8 @@ Below steps to setup AccuraScan's SDK to your project.
             }
         }
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
         }
         packagingOptions {
             pickFirst 'lib/arm64-v8a/libcrypto.so'
@@ -61,7 +61,7 @@ Below steps to setup AccuraScan's SDK to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.1.2'
+        implementation 'com.github.accurascan:AccuraOCR:6.1.4'
         // for Accura Face Match
         implementation 'com.github.accurascan:AccuraFaceMatch:3.2.3'
         // for Accura liveness
@@ -223,6 +223,9 @@ private void initCamera() {
             .setOcrCallback(this)  // To get feedback and Success Call back
             .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
             .setFrontSide() // or cameraView.setBackSide(); to scan card side front or back default it's scan front side first
+            .enableDocLiveness(true)
+            .setMaxTimeLimitInSeconds(60)
+            .setServerUrl("Add your document liveness url")
 //                Option setup
 //                .setEnableMediaPlayer(false) // false to disable default sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, /*custom sound file*/)) // To add your custom sound and Must have to enable media player
@@ -311,6 +314,9 @@ public void onScannedComplete(Object result) {
             if (recogType == RecogType.OCR) {
                 // @recogType is {@see com.docrecog.scan.RecogType#OCR}
                 if (isBack || !cameraView.isBackSideAvailable()) { // To check card has back side or not
+                // front/back document liveness status
+                    ((OcrData) result).getFrontData().docLiveness
+                    ((OcrData) result).getBackData().docLiveness
             		OcrData.setOcrResult((OcrData) result); // Set data To retrieve it anywhere
                 } else {
                     isBack = true;
@@ -323,6 +329,9 @@ public void onScannedComplete(Object result) {
             }
         } else if (result instanceof RecogResult) {
             // @recogType is {@see com.docrecog.scan.RecogType#MRZ}
+            // front/back document liveness status
+            ((RecogResult) result).docfrontliveness
+            ((RecogResult) result).docbackliveness
             RecogResult.setRecogResult((RecogResult) result); // Set data To retrieve it anywhere
         } else if (result instanceof CardDetails) {
             //  @recogType is {@see com.docrecog.scan.RecogType#BANKCARD}
@@ -367,6 +376,27 @@ public void onProcessUpdate(int titleCode, String errorMessage, boolean isFlip) 
             }
         }
     });
+}
+
+@Override
+public void onAPIUpdate(int code, String message) {
+   Runnable runnable = () -> {
+       if (code == RecogEngine.ACCURA_API_DISPLAY_PROGRESS) {
+           try {
+               // show/hide your custom dialog according to message
+               if (message.equals("Show") && !pd.isShowing()) {
+                   // Show loader
+               } else if (message.equals("Hide") && pd.isShowing()) {
+                   // dismiss loader
+               }
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+       } else if (code == RecogEngine.ACCURA_API_ERROR) {
+           Toast.makeText(OcrActivity.this, "Api Error is " + message, Toast.LENGTH_LONG).show();
+       }
+   };
+   runOnUiThread(runnable);
 }
 
 @Override
