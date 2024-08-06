@@ -115,6 +115,10 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             RecogResult g_recogResult = RecogResult.getRecogResult();
             if (g_recogResult != null) {
                 setMRZData(g_recogResult);
+                addLayout("Document Liveness Front", g_recogResult.docfrontliveness);
+                if (g_recogResult.docBackBitmap != null) {
+                    addLayout("Document Liveness Back", g_recogResult.docbackliveness);
+                }
 
                 if (g_recogResult.docFrontBitmap != null) {
                     iv_frontside.setImageBitmap(g_recogResult.docFrontBitmap);
@@ -287,6 +291,16 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
         if (frontData != null) {
             ly_front_container.setVisibility(View.VISIBLE);
+
+            final View _layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+            final TextView _tv_key = _layout.findViewById(R.id.tv_key);
+            final TextView _tv_value = _layout.findViewById(R.id.tv_value);
+            final ImageView _imageView = _layout.findViewById(R.id.iv_image);
+            _tv_key.setText("Document Liveness Front" + ":");
+            _imageView.setVisibility(View.GONE);
+            _tv_value.setText(frontData.docLiveness);
+            front_table_layout.addView(_layout);
+
             try {
                 for (int i = 0; i < frontData.getOcr_data().size(); i++) {
 
@@ -355,6 +369,16 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         if (backData != null) {
             boolean isBackVisible = true;
             ly_back_container.setVisibility(View.VISIBLE);
+
+            final View _layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+            final TextView _tv_key = _layout.findViewById(R.id.tv_key);
+            final TextView _tv_value = _layout.findViewById(R.id.tv_value);
+            final ImageView _imageView = _layout.findViewById(R.id.iv_image);
+            _tv_key.setText("Document Liveness Back" + ":");
+            _imageView.setVisibility(View.GONE);
+            _tv_value.setText(backData.docLiveness);
+            back_table_layout.addView(_layout);
+
             try {
                 for (int i = 0; i < backData.getOcr_data().size(); i++) {
                     View layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);

@@ -217,15 +217,16 @@ private void initCamera() {
         // or you can pass respective country codes of countries whose MRZ you want to accept. Eg:- 'IND', 'USA', 'TUN', etc.
         cameraView.setMRZCountryCodeList("all");
     }
+    // Enable document liveness and set Document liveness url
+    cameraView.enableDocLiveness(true)
+            .setMaxTimeLimitInSeconds(60)
+            .setServerUrl("Add your document liveness url")
     cameraView.setRecogType(recogType)
             .setView(linearLayout) // To add camera view
             .setCameraFacing(0) // // To set selfie(1) or rear(0) camera.
             .setOcrCallback(this)  // To get feedback and Success Call back
             .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
             .setFrontSide() // or cameraView.setBackSide(); to scan card side front or back default it's scan front side first
-            .enableDocLiveness(true)
-            .setMaxTimeLimitInSeconds(60)
-            .setServerUrl("Add your document liveness url")
 //                Option setup
 //                .setEnableMediaPlayer(false) // false to disable default sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, /*custom sound file*/)) // To add your custom sound and Must have to enable media player
@@ -314,7 +315,7 @@ public void onScannedComplete(Object result) {
             if (recogType == RecogType.OCR) {
                 // @recogType is {@see com.docrecog.scan.RecogType#OCR}
                 if (isBack || !cameraView.isBackSideAvailable()) { // To check card has back side or not
-                // front/back document liveness status
+                    // To Access front/back document liveness status for ID cards
                     ((OcrData) result).getFrontData().docLiveness
                     ((OcrData) result).getBackData().docLiveness
             		OcrData.setOcrResult((OcrData) result); // Set data To retrieve it anywhere
@@ -329,7 +330,7 @@ public void onScannedComplete(Object result) {
             }
         } else if (result instanceof RecogResult) {
             // @recogType is {@see com.docrecog.scan.RecogType#MRZ}
-            // front/back document liveness status
+            // To Access front/back document liveness status for MRZ Document
             ((RecogResult) result).docfrontliveness
             ((RecogResult) result).docbackliveness
             RecogResult.setRecogResult((RecogResult) result); // Set data To retrieve it anywhere

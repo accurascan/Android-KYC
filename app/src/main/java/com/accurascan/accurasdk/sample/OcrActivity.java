@@ -1,6 +1,7 @@
 package com.accurascan.accurasdk.sample;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
@@ -51,6 +52,7 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
     private String cardName;
     private boolean isBack = false;
     private MRZDocumentType mrzType;
+    private ProgressDialog pd;
 
     private static class MyHandler extends Handler {
         private final WeakReference<OcrActivity> mActivity;
@@ -143,6 +145,9 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
                 .setOcrCallback(this)  // To get Update and Success Call back
                 .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
                 .setFrontSide()
+                .enableDocLiveness(true)
+                .setMaxTimeLimitInSeconds(60)
+                .setServerUrl("")
 //                optional field
 //                .setEnableMediaPlayer(false) // false to disable sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, com.accurascan.ocr.mrz.R.raw.beep)) // To add your custom sound and Must have to enable media player
@@ -398,6 +403,39 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
             default:
                 return s;
         }
+    }
+
+    @Override
+    public void onAPIUpdate(int code, String message) {
+        Runnable runnable = () -> {
+            if (code == RecogEngine.ACCURA_API_DISPLAY_PROGRESS) {
+                // Display your custom progress dialog
+                if (pd == null) {
+                    pd = new ProgressDialog(OcrActivity.this);
+                    pd.setCancelable(false);
+                    pd.setCanceledOnTouchOutside(false);
+                    pd.setMessage("Wait for API response");
+                }
+                try {
+                    // show/hide your custom dialog according to message
+                    if (message.equals("Show") && !pd.isShowing()) {
+                        // To update message
+                        Message _message = new Message();
+                        _message.what = 1;
+                        _message.obj = "Please wait...";
+                        handler.sendMessage(_message);
+                        pd.show();
+                    } else if (message.equals("Hide") && pd.isShowing()) {
+                        pd.dismiss();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (code == RecogEngine.ACCURA_API_ERROR) {
+                Toast.makeText(OcrActivity.this, "Api Error is " + message, Toast.LENGTH_LONG).show();
+            }
+        };
+        runOnUiThread(runnable);
     }
 
     @Override
