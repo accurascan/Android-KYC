@@ -40,8 +40,8 @@ Below steps to setup AccuraScan's SDK to your project.
             }
         }
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
         }
         packagingOptions {
             pickFirst 'lib/arm64-v8a/libcrypto.so'
@@ -61,11 +61,11 @@ Below steps to setup AccuraScan's SDK to your project.
     dependencies {
         ...
         // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.1.2'
+        implementation 'com.github.accurascan:AccuraOCR:6.1.3'
         // for Accura Face Match
         implementation 'com.github.accurascan:AccuraFaceMatch:3.2.5'
         // for Accura liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.3.2'
+        implementation 'com.github.accurascan:Liveness-Android:3.4.1'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -698,7 +698,7 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
 
     // must have to call SelfieCameraActivity.getCustomIntent() to create intent
-    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your_url");
     startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
 
 
@@ -715,15 +715,14 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
                 if (result.getStatus().equals("1")) {
                     // result get bitmap of face by using following code
                     Bitmap bitmap = result.getFaceBiometrics();
-                     // do some code to call liveness api to get liveness score of result.getFaceUri() Image.
+                    double livenessScore = result.getLivenessResult().getLivenessScore() * 100.0;
+                    Toast.makeText(this, "Liveness Score : " + livenessScore, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         }
     }
-
-**Note :** [click here](https://github.com/accurascan/Android-KYC/blob/master/app/src/main/java/com/accurascan/accurasdk/sample/OcrResultActivity.java#L938) for Liveness api calling part
 
 ## ProGuard
 

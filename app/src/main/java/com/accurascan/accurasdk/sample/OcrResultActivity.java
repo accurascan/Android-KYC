@@ -1,13 +1,9 @@
 package com.accurascan.accurasdk.sample;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -26,18 +22,12 @@ import androidx.annotation.Nullable;
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
-import com.accurascan.facedetection.model.AccuraLivenessResult;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
-import com.accurascan.facedetection.utils.AccuraLivenessLog;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
 import com.accurascan.ocr.mrz.model.RecogResult;
-import com.androidnetworking.AndroidNetworking;
-import com.androidnetworking.common.Priority;
-import com.androidnetworking.error.ANError;
-import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.bumptech.glide.Glide;
 import com.docrecog.scan.RecogType;
 import com.facedetection.FMCameraScreenCustomization;
@@ -51,8 +41,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
@@ -695,7 +683,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                     return;
                 }
                 if (result.getStatus().equals("1")) {
-                    checkLiveness(result.getFaceUri(), result);
+                    handleVerificationSuccessResult(result);
                 } else {
                     Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -838,7 +826,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             livenessCustomization.setGlarePercentage(-1, -1);
         }
 
-        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url");
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
@@ -933,69 +921,6 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     @Override
     public void onExtractInit(int i) {
 
-    }
-
-    private void checkLiveness(Uri uri, AccuraVerificationResult verificationResult) {
-        NetworkInfo activeNetworkInfo = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-        if (!(activeNetworkInfo != null && activeNetworkInfo.isConnected())) {
-            verificationResult.setStatus("0");
-            verificationResult.setErrorMessage("Please check your internet connection");
-            verificationResult.setLivenessResult(null);
-            verificationResult.setFaceBiometric(null);
-            verificationResult.setFaceBiometrics(null);
-            Intent intent = new Intent();
-            intent.putExtra("Accura.liveness", verificationResult);
-            setResult(RESULT_OK, intent);
-            finish();
-            return;
-        }
-        AccuraLivenessResult livenessResult = new AccuraLivenessResult();
-        showProgressDialog();
-
-        Map<String, File> multiPartFileMap = new HashMap<>();
-        File file = null;
-        try {
-            file = new File(uri.getPath());
-            multiPartFileMap.put("liveness_image", file);
-        } catch (Exception e) {
-        }
-
-        if (!multiPartFileMap.isEmpty()) {
-            AndroidNetworking.upload("add liveness url")
-                    .addHeaders("Api-Key", "add your api key")
-                    .addMultipartFile(multiPartFileMap)
-                    .setPriority(Priority.HIGH)
-                    .build()
-                    .getAsJSONObject(new JSONObjectRequestListener() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            dismissProgressDialog();
-                            if (response != null) {
-                                livenessResult.setLivenessStatus(false);
-                                try {
-                                    if (response.has("probability")) {
-                                        livenessResult.setLivenessStatus(true);
-                                        livenessResult.setLivenessScore(response.getDouble("probability"));
-                                        verificationResult.setLivenessResult(livenessResult);
-                                        handleVerificationSuccessResult(verificationResult);
-                                        return;
-                                    }
-                                } catch (JSONException e) {
-                                    AccuraLivenessLog.loge("TAG", Log.getStackTraceString(e));
-                                }
-                            }
-                            Toast.makeText(OcrResultActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(ANError error) {
-                            dismissProgressDialog();
-                            Toast.makeText(OcrResultActivity.this, "Please try again" + Log.getStackTraceString(error), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
-            dismissProgressDialog();
-        }
     }
 
 }
