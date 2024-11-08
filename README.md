@@ -63,9 +63,9 @@ Below steps to setup AccuraScan's SDK to your project.
         // for Accura OCR
         implementation 'com.github.accurascan:AccuraOCR:6.1.4'
         // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.3'
+        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.5'
         // for Accura liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.3.2'
+        implementation 'com.github.accurascan:Liveness-Android:3.4.1'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -729,7 +729,7 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
 
     // must have to call SelfieCameraActivity.getCustomIntent() to create intent
-    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization,"your liveness url");
     startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
 
 

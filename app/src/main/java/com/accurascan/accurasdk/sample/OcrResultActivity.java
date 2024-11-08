@@ -862,7 +862,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             livenessCustomization.setGlarePercentage(-1, -1);
         }
 
-        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization,"your liveness url");
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
