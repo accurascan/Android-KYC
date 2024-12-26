@@ -223,6 +223,7 @@ private void initCamera() {
             .setOcrCallback(this)  // To get feedback and Success Call back
             .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
             .setFrontSide() // or cameraView.setBackSide(); to scan card side front or back default it's scan front side first
+            .setAPIData("your server url", "your server api key") // to store data on portal
 //                Option setup
 //                .setEnableMediaPlayer(false) // false to disable default sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, /*custom sound file*/)) // To add your custom sound and Must have to enable media player
