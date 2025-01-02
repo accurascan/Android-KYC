@@ -143,6 +143,7 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
                 .setOcrCallback(this)  // To get Update and Success Call back
                 .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
                 .setFrontSide()
+                .setServerData("your server url", "your server api key")
 //                optional field
 //                .setEnableMediaPlayer(false) // false to disable sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, com.accurascan.ocr.mrz.R.raw.beep)) // To add your custom sound and Must have to enable media player
@@ -406,6 +407,11 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
         tvScanMessage.setText(errorMessage);
         Runnable runnable = () -> Toast.makeText(OcrActivity.this, errorMessage, Toast.LENGTH_LONG).show();
         runOnUiThread(runnable);
+    }
+
+    @Override
+    public void onAPIUpdate(int i, String s) {
+        runOnUiThread(() -> Toast.makeText(this, "API Error : " + s, Toast.LENGTH_SHORT).show());
     }
 
     @Override

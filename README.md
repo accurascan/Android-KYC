@@ -40,8 +40,8 @@ Below steps to setup AccuraScan's SDK to your project.
             }
         }
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
         }
         packagingOptions {
             pickFirst 'lib/arm64-v8a/libcrypto.so'
@@ -59,13 +59,13 @@ Below steps to setup AccuraScan's SDK to your project.
 		
     }
     dependencies {
-        ...
-        // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.1.2'
-        // for Accura Face Match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.5'
-        // for Accura liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.4.1'
+         ... 
+         // For Accura OCR SDK
+         implementation 'com.github.accurascan:AccuraOCR:6.3.0'
+         // For Accura Face match
+         implementation 'com.github.accurascan:AccuraFaceMatch:3.3.0'
+         // For Accura liveness
+         implementation 'com.github.accurascan:Liveness-Android:3.5.0'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -223,7 +223,7 @@ private void initCamera() {
             .setOcrCallback(this)  // To get feedback and Success Call back
             .setStatusBarHeight(statusBarHeight)  // To remove Height from Camera View if status bar visible
             .setFrontSide() // or cameraView.setBackSide(); to scan card side front or back default it's scan front side first
-            .setAPIData("your server url", "your server api key") // to store data on portal
+            .setServerData("your server url", "your server api key") // to store data on portal
 //                Option setup
 //                .setEnableMediaPlayer(false) // false to disable default sound and true to enable sound and default it is true
 //                .setCustomMediaPlayer(MediaPlayer.create(this, /*custom sound file*/)) // To add your custom sound and Must have to enable media player
@@ -375,6 +375,12 @@ public void onError(String errorMessage) {
     // display data on ui thread
     // stop ocr if failed
     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+}
+
+@Override
+public void onAPIUpdate(int i, String s) {
+   // display data on ui thread
+   runOnUiThread(() -> Toast.makeText(this, "API Error : " + s, Toast.LENGTH_SHORT).show());
 }
 
 private String getTitleMessage(int titleCode) {
@@ -558,6 +564,7 @@ protected void onActivityResult(int requestCode, int resultCode, @Nullable Inten
             // also use some other method for face match
             // Make sure to call "helper.setInputImage" first, followed by "helper.setMatchImage".
             // helper.setInputImage(uri1);
+            // helper.setApiData("your server url", "your server api key", AccuraVerificationResult.getLivenessId()) 
             // helper.setMatchImage(uri2);
         
         }
@@ -670,6 +677,7 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.feedbackBackGroundColor = Color.TRANSPARENT;
     livenessCustomization.feedbackTextColor = Color.BLACK;
     livenessCustomization.feedbackTextSize = 18;
+    livenessCustomization.feedBackTopMessage = "Keep Face In Frame \n Face Must Be Near To Camera ";
     livenessCustomization.feedBackframeMessage = "Frame Your Face";
     livenessCustomization.feedBackAwayMessage = "Move Phone Away";
     livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
@@ -684,6 +692,7 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.feedBackProcessingMessage = "Processing...";
     livenessCustomization.showlogo = 0; // Set 0 to hide logo from selfie camera screen
     livenessCustomization.logoIcon = R.drawable.your_logo; // To set your custom logo
+    livenessCustomization.setApiKey("add liveness api key");
         
     // LivenessCustomization.CAMERA_FACING_FRONT to set selfie camera       
     // LivenessCustomization.CAMERA_FACING_BACK to set rear camera
@@ -699,7 +708,8 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
 
     // must have to call SelfieCameraActivity.getCustomIntent() to create intent
-    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+    // kycId is OcrData.getKycId() for ID card and RecogResult.kycId for passport MRZ document
+    Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your_liveness_url","your server url", "your server api key", kycId);
     startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
 
 
@@ -716,15 +726,15 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
                 if (result.getStatus().equals("1")) {
                     // result get bitmap of face by using following code
                     Bitmap bitmap = result.getFaceBiometrics();
-                     // do some code to call liveness api to get liveness score of result.getFaceUri() Image.
+                    double livenessScore = result.getLivenessResult().getLivenessScore();
+                    String livenessId = result.getLivenessId();
+                    Toast.makeText(this, "Liveness Score : " + livenessScore, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, result.getStatus() + " " + result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         }
     }
-
-**Note :** [click here](https://github.com/accurascan/Android-KYC/blob/master/app/src/main/java/com/accurascan/accurasdk/sample/OcrResultActivity.java#L938) for Liveness api calling part
 
 ## ProGuard
 

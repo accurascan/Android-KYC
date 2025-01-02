@@ -56,6 +56,8 @@ import java.util.Map;
 
 public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
+    public static final String DATABASE_SERVER_URL = "your server url";
+    public static final String DATABASE_SERVER_KEY = "your server api key";
     Bitmap face1;
     private final int ACCURA_LIVENESS_CAMERA = 101;
     private final int ACCURA_FACEMATCH_CAMERA = 102;
@@ -71,6 +73,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     private boolean isFaceMatch = false, isLiveness = false;
     private String faceParams;
     private String faceLicense;
+    private String kycId;
 
     protected void onCreate(Bundle savedInstanceState) {
         if (getIntent().getIntExtra("app_orientation", 1) != 0) {
@@ -95,6 +98,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             OcrData ocrData = OcrData.getOcrResult();
             if (ocrData != null) {
                 setOcrData(ocrData);
+                kycId = ocrData.getKycId();
             }
         } else if (recogType == RecogType.BANKCARD) {
             ly_back.setVisibility(View.GONE);
@@ -114,6 +118,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             // RecogType.MRZ
             RecogResult g_recogResult = RecogResult.getRecogResult();
             if (g_recogResult != null) {
+                kycId = g_recogResult.kycId;
                 setMRZData(g_recogResult);
 
                 if (g_recogResult.docFrontBitmap != null) {
@@ -643,6 +648,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                                 Bitmap face2 = result.getFaceBiometrics();
                                 Glide.with(OcrResultActivity.this).load(face2).centerCrop().into(ivUserProfile2);
                                 if (face2 != null) {
+                                    faceHelper.setApiData(DATABASE_SERVER_URL, DATABASE_SERVER_KEY, result.getLivenessId());
                                     faceHelper.setMatchImage(face2);
                                 }
                                 setLivenessData(result.getLivenessResult().getLivenessScore() * 100 + "");
@@ -695,7 +701,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
                     return;
                 }
                 if (result.getStatus().equals("1")) {
-                    checkLiveness(result.getFaceUri(), result);
+                    handleVerificationSuccessResult(result);
                 } else {
                     Toast.makeText(this, result.getErrorMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -807,6 +813,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         livenessCustomization.feedbackBackGroundColor = getResources().getColor(R.color.livenessfeedbackBg);
         livenessCustomization.feedbackTextColor = getResources().getColor(R.color.livenessfeedbackText);
         livenessCustomization.feedbackTextSize = 18;
+        livenessCustomization.feedBackTopMessage = "Keep Face In Frame \n Face Must Be Near To Camera ";
         livenessCustomization.feedBackframeMessage = "Frame Your Face";
         livenessCustomization.feedBackAwayMessage = "Move Phone Away";
         livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
@@ -822,6 +829,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         livenessCustomization.showlogo = 1; // Set 0 to hide logo from selfie camera screen
         //livenessCustomization.logoIcon = R.drawable.accura_liveness_logo; // To set your custom logo
         //livenessCustomization.facing = LivenessCustomization.CAMERA_FACING_FRONT;
+        livenessCustomization.setApiKey("your liveness api key");
 
         if (faceParams != null && !faceParams.isEmpty()) {
             try {
@@ -838,7 +846,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             livenessCustomization.setGlarePercentage(-1, -1);
         }
 
-        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization);
+        Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url", DATABASE_SERVER_URL, DATABASE_SERVER_KEY, kycId);
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
     }
 
@@ -933,69 +941,6 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     @Override
     public void onExtractInit(int i) {
 
-    }
-
-    private void checkLiveness(Uri uri, AccuraVerificationResult verificationResult) {
-        NetworkInfo activeNetworkInfo = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-        if (!(activeNetworkInfo != null && activeNetworkInfo.isConnected())) {
-            verificationResult.setStatus("0");
-            verificationResult.setErrorMessage("Please check your internet connection");
-            verificationResult.setLivenessResult(null);
-            verificationResult.setFaceBiometric(null);
-            verificationResult.setFaceBiometrics(null);
-            Intent intent = new Intent();
-            intent.putExtra("Accura.liveness", verificationResult);
-            setResult(RESULT_OK, intent);
-            finish();
-            return;
-        }
-        AccuraLivenessResult livenessResult = new AccuraLivenessResult();
-        showProgressDialog();
-
-        Map<String, File> multiPartFileMap = new HashMap<>();
-        File file = null;
-        try {
-            file = new File(uri.getPath());
-            multiPartFileMap.put("liveness_image", file);
-        } catch (Exception e) {
-        }
-
-        if (!multiPartFileMap.isEmpty()) {
-            AndroidNetworking.upload("add liveness url")
-                    .addHeaders("Api-Key", "add your api key")
-                    .addMultipartFile(multiPartFileMap)
-                    .setPriority(Priority.HIGH)
-                    .build()
-                    .getAsJSONObject(new JSONObjectRequestListener() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            dismissProgressDialog();
-                            if (response != null) {
-                                livenessResult.setLivenessStatus(false);
-                                try {
-                                    if (response.has("probability")) {
-                                        livenessResult.setLivenessStatus(true);
-                                        livenessResult.setLivenessScore(response.getDouble("probability"));
-                                        verificationResult.setLivenessResult(livenessResult);
-                                        handleVerificationSuccessResult(verificationResult);
-                                        return;
-                                    }
-                                } catch (JSONException e) {
-                                    AccuraLivenessLog.loge("TAG", Log.getStackTraceString(e));
-                                }
-                            }
-                            Toast.makeText(OcrResultActivity.this, "Please try again", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onError(ANError error) {
-                            dismissProgressDialog();
-                            Toast.makeText(OcrResultActivity.this, "Please try again" + Log.getStackTraceString(error), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } else {
-            dismissProgressDialog();
-        }
     }
 
 }
