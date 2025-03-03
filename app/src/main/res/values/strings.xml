@@ -1,42 +1,11 @@
 <resources>
     <string name="app_name">Accura Demo SDK</string>
 
-    <string name="passport_mrz"><![CDATA[Passport MRZ]]></string>
-    <string name="id_mrz"><![CDATA[ID Card MRZ]]></string>
-    <string name="visa_mrz"><![CDATA[VISA MRZ]]></string>
-    <string name="other_mrz"><![CDATA[ALL MRZ]]></string>
-    <string name="bank_card">Bank Card</string>
-    <string name="accura_ocr">OCR</string>
-    <string name="accura_ocr_desp"><![CDATA[Recognizes Passports, Driving License & National ID\'s From All Countries. Works Ofﬂine]]></string>
-    <string name="accura_face_match">FACE MATCH</string>
-    <string name="accura_face_desp"><![CDATA[AI & ML Based Powerful Face Detection & Recognition Solution. 1:1 and 1:N. Works Ofﬂine]]></string>
-
-    <string name="score_formate">%.2f %%</string>
-    <string name="liveness">Liveness</string>
-    <string name="face_match">Face Match</string>
-    <string name="usa_dl_result">USA DL Result</string>
-    <string name="PDF417_Barcode">PDF417 Barcode</string>
+    <string name="cheque">Cheque Scanning</string>
 
     <dimen name="text_title_size">17sp</dimen>
     <dimen name="text_title_left">15dp</dimen>
     <dimen name="result_title_text">17sp</dimen>
     <dimen name="_12dp">12dp</dimen>
-
-    <string name="header_key">ApiKey</string>
-    <string name="header_key_new">Api-Key</string>
-    <string name="header_key_zoom">X-App-Token</string>
-
-    <string name="status_code_error">401</string>
-
-    <string name="key_status_code">error</string>
-    <string name="key_message">message</string>
-
-    <string name="err_network">No network connection!</string>
-    <string name="err_something_wrong">Something went wrong. Please try again later.</string>
-    <string name="status_code_success">200</string>
-
-    <string name="key_not_set">Retrieving facemaps requires that you generate a public/private key pair per the instructions at https://dev.zoomlogin.com/zoomsdk/#/zoom-server-guide</string>
-    <string name="public_key_not_set">Public Key Not Set</string>
-
 
 </resources>

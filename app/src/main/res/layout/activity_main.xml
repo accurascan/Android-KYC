@@ -27,96 +27,20 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/lout_passport_mrz"
+                    android:id="@+id/lout_cheque"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/_5dp"
                     android:background="@drawable/btn_bg_gray"
                     android:padding="@dimen/_15dp"
-                    android:text="@string/passport_mrz"
+                    android:text="@string/cheque"
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:visibility="gone"/>
 
-                <TextView
-                    android:id="@+id/lout_id_mrz"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_5dp"
-                    android:background="@drawable/btn_bg_gray"
-                    android:padding="@dimen/_15dp"
-                    android:text="@string/id_mrz"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:visibility="gone"/>
-
-                <TextView
-                    android:id="@+id/lout_visa_mrz"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_5dp"
-                    android:background="@drawable/btn_bg_gray"
-                    android:padding="@dimen/_15dp"
-                    android:text="@string/visa_mrz"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:visibility="gone"/>
-
-                <TextView
-                    android:id="@+id/lout_mrz"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_5dp"
-                    android:background="@drawable/btn_bg_gray"
-                    android:padding="@dimen/_15dp"
-                    android:text="@string/other_mrz"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:visibility="gone"/>
-
-                <TextView
-                    android:id="@+id/lout_bank"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_5dp"
-                    android:background="@drawable/btn_bg_gray"
-                    android:padding="@dimen/_15dp"
-                    android:text="@string/bank_card"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:visibility="gone"/>
-
-                <TextView
-                    android:id="@+id/lout_barcode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_5dp"
-                    android:background="@drawable/btn_bg_gray"
-                    android:padding="@dimen/_15dp"
-                    android:text="Barcode"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:visibility="gone"/>
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_country"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:nestedScrollingEnabled="false"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:itemCount="2"
-                    tools:listitem="@layout/item_layout" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_card"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:itemCount="2"
-            tools:listitem="@layout/item_layout" />
     </RelativeLayout>
 
 </LinearLayout>

@@ -14,41 +14,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
-        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme.NoActionBar"
         tools:replace="android:theme,android:label">
-        <activity android:name=".SplashActivity"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity android:name=".MenuActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait"
             android:label="AccuraOCR"
-            android:theme="@style/AppThemeActionBar"/>
+            android:theme="@style/AppThemeActionBar"
+            android:exported="true">
 
-        <activity android:name=".ActivityFaceMatch"
-            android:label="@string/accura_face"
-            android:theme="@style/FaceMatchTheme"/>
-
-        <activity android:name="com.accurascan.facematch.ui.FaceMatchActivity"
-            android:label="@string/accura_face"
-            android:theme="@style/FaceMatchTheme"/>
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
 
         <activity android:name=".OcrActivity"
             android:label="AccuraOCR"
-            android:theme="@style/AppTheme"
             android:screenOrientation="locked"/>
 
         <activity android:name=".OcrResultActivity"
