@@ -60,8 +60,8 @@ Below steps to setup AccuraScan's SDK to your project.
     }
     dependencies {
         ...
-        // for Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.1.4'
+        // Accura OCR
+        implementation 'com.github.accurascan:AccuraOCR:6.1.11'
         // Accura Face match
         implementation 'com.github.accurascan:AccuraFaceMatch:3.2.7'
         // Accura Liveness
@@ -316,8 +316,8 @@ public void onScannedComplete(Object result) {
                 // @recogType is {@see com.docrecog.scan.RecogType#OCR}
                 if (isBack || !cameraView.isBackSideAvailable()) { // To check card has back side or not
                     // To Access front/back document liveness status for ID cards
-                    ((OcrData) result).getFrontData().docLiveness
-                    ((OcrData) result).getBackData().docLiveness
+                    ((OcrData) result).getFrontData().IDLivenessScore
+                    ((OcrData) result).getBackData().IDLivenessScore
             		OcrData.setOcrResult((OcrData) result); // Set data To retrieve it anywhere
                 } else {
                     isBack = true;
@@ -331,8 +331,8 @@ public void onScannedComplete(Object result) {
         } else if (result instanceof RecogResult) {
             // @recogType is {@see com.docrecog.scan.RecogType#MRZ}
             // To Access front/back document liveness status for MRZ Document
-            ((RecogResult) result).docfrontliveness
-            ((RecogResult) result).docbackliveness
+            ((RecogResult) result).FrontIDLivenessScore
+            ((RecogResult) result).BackIDLivenessScore
             RecogResult.setRecogResult((RecogResult) result); // Set data To retrieve it anywhere
         } else if (result instanceof CardDetails) {
             //  @recogType is {@see com.docrecog.scan.RecogType#BANKCARD}

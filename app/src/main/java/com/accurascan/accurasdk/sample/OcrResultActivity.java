@@ -102,11 +102,11 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             // RecogType.MRZ
             RecogResult g_recogResult = RecogResult.getRecogResult();
             if (g_recogResult != null) {
-                setMRZData(g_recogResult);
-                addLayout("Document Liveness Front", g_recogResult.docfrontliveness);
+                addLivenessLayout("Front ", g_recogResult.FrontIDLivenessScore, mrz_table_layout);
                 if (g_recogResult.docBackBitmap != null) {
-                    addLayout("Document Liveness Back", g_recogResult.docbackliveness);
+                    addLivenessLayout("Back ", g_recogResult.BackIDLivenessScore, mrz_table_layout);
                 }
+                setMRZData(g_recogResult);
 
                 if (g_recogResult.docFrontBitmap != null) {
                     iv_frontside.setImageBitmap(g_recogResult.docFrontBitmap);
@@ -280,14 +280,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         if (frontData != null) {
             ly_front_container.setVisibility(View.VISIBLE);
 
-            final View _layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
-            final TextView _tv_key = _layout.findViewById(R.id.tv_key);
-            final TextView _tv_value = _layout.findViewById(R.id.tv_value);
-            final ImageView _imageView = _layout.findViewById(R.id.iv_image);
-            _tv_key.setText("Document Liveness Front" + ":");
-            _imageView.setVisibility(View.GONE);
-            _tv_value.setText(frontData.docLiveness);
-            front_table_layout.addView(_layout);
+            addLivenessLayout("", frontData.IDLivenessScore, front_table_layout);
 
             try {
                 for (int i = 0; i < frontData.getOcr_data().size(); i++) {
@@ -358,14 +351,7 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             boolean isBackVisible = true;
             ly_back_container.setVisibility(View.VISIBLE);
 
-            final View _layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
-            final TextView _tv_key = _layout.findViewById(R.id.tv_key);
-            final TextView _tv_value = _layout.findViewById(R.id.tv_value);
-            final ImageView _imageView = _layout.findViewById(R.id.iv_image);
-            _tv_key.setText("Document Liveness Back" + ":");
-            _imageView.setVisibility(View.GONE);
-            _tv_value.setText(backData.docLiveness);
-            back_table_layout.addView(_layout);
+            addLivenessLayout("", backData.IDLivenessScore, back_table_layout);
 
             try {
                 for (int i = 0; i < backData.getOcr_data().size(); i++) {
@@ -434,6 +420,17 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             ly_back_container.setVisibility(View.GONE);
         }
         setData();
+    }
+
+    private void addLivenessLayout(String prefix, Double idLivenessScore, TableLayout tableLayout) {
+        final View layout = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+        final TextView tv_key = layout.findViewById(R.id.tv_key);
+        final TextView tv_value = layout.findViewById(R.id.tv_value);
+        final ImageView imageView = layout.findViewById(R.id.iv_image);
+        tv_key.setText(prefix + "ID Liveness Score" + ":");
+        imageView.setVisibility(View.GONE);
+        tv_value.setText(idLivenessScore+"");
+        tableLayout.addView(layout);
     }
 
     private void updateSecurityLayout(String s) {
