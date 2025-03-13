@@ -679,8 +679,12 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.feedBackBlurFaceMessage = "Blur Detected Over Face";
     livenessCustomization.feedBackGlareFaceMessage = "Glare Detected";
     livenessCustomization.feedBackLowLightMessage = "Low light detected";
+
+    //To customize the Loading message of Dialog Box when Liveness is success
     livenessCustomization.feedbackDialogMessage = "Loading...";
+    //To customize the Feedback Processing message when Liveness is succes
     livenessCustomization.feedBackProcessingMessage = "Processing...";
+
     livenessCustomization.showlogo = 0; // Set 0 to hide logo from selfie camera screen
     livenessCustomization.logoIcon = R.drawable.your_logo; // To set your custom logo
         
@@ -697,6 +701,27 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     // Set min and max percentage for glare or set it -1 to remove glare filter
     livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
     livenessCustomization.setApiKey("add api key");
+
+    // Set Liveness Mode as required
+    // 1. LivenessMode.FACE_3D - To enable Face Movement
+    // 2. LivenessMode.VOICE   - To enable Oral Verification
+    // 3. LivenessMode.All     - To enable Face Movement and Oral Verification both
+    livenessCustomization.livenessMode = LivenessMode.ALL;
+
+    //To customize Verified Sound
+    livenessCustomization.livenessVerifiedAlertSound = Your Uri;
+
+    //To customize Verified Animation when Liveness is successful
+    livenessCustomization.livenessVerifiedAnimation = R.drawable.approved_sign;
+
+    //<editor-fold desc="customization for LivenessMode.VOICE">
+    livenessCustomization.feedBackOralInfoMessage = "Say each digits out loud";
+    //To customize Voice Icon for Oral Verification in Liveness Window
+    livenessCustomization.voiceIcon = R.drawable.your_image;
+    //To customize Text Size and Color of verification code which is getting display on the middle of oval for voice verification
+    livenessCustomization.codeTextSize = 30;
+    livenessCustomization.codeTextColor = Color.WHITE;
+    //</editor-fold>
 
     // must have to call SelfieCameraActivity.getCustomIntent() to create intent
     Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your_url");

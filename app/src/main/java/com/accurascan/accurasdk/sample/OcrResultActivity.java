@@ -1,9 +1,12 @@
 package com.accurascan.accurasdk.sample;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -21,6 +24,7 @@ import androidx.annotation.Nullable;
 
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facedetection.LivenessCustomization;
+import com.accurascan.facedetection.LivenessMode;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
 import com.accurascan.facematch.util.BitmapHelper;
@@ -825,6 +829,22 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             livenessCustomization.setBlurPercentage(80);
             livenessCustomization.setGlarePercentage(-1, -1);
         }
+
+        // Set Liveness Mode as required
+        // 1. LivenessMode.FACE_3D - To enable Face Movement
+        // 2. LivenessMode.VOICE   - To enable Oral Verification
+        // 3. LivenessMode.All     - To enable Face Movement and Oral Verification both
+        livenessCustomization.livenessMode = LivenessMode.ALL;
+
+        livenessCustomization.livenessVerifiedAlertSound = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getPackageName() + "/raw/accura_liveness_verified");
+        livenessCustomization.livenessVerifiedAnimation = R.drawable.approved_sign;
+
+        //<editor-fold desc="customization for LivenessMode.VOICE">
+        livenessCustomization.feedBackOralInfoMessage = getString(R.string.oral_info);
+        livenessCustomization.voiceIcon = R.drawable.ic_mic;
+        livenessCustomization.codeTextSize = 30;
+        livenessCustomization.codeTextColor = Color.WHITE;
+        //</editor-fold>
 
         Intent intent = SelfieCameraActivity.getCustomIntent(this, livenessCustomization, "your liveness url");
         startActivityForResult(intent, ACCURA_LIVENESS_CAMERA);
