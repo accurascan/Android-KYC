@@ -62,7 +62,7 @@ dependencies {
     // For Accura OCR SDK
     implementation 'com.github.accurascan:AccuraOCR:6.1.4'
     // For Accura Face match
-    implementation 'com.github.accurascan:AccuraFaceMatch:3.2.5'
+    implementation 'com.github.accurascan:AccuraFaceMatch:3.2.7'
     // for liveness
-    implementation 'com.github.accurascan:Liveness-Android:3.4.1'
+    implementation 'com.github.accurascan:Liveness-Android:3.4.7'
 }
