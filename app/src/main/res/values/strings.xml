@@ -35,8 +35,14 @@
     <string name="err_something_wrong">Something went wrong. Please try again later.</string>
     <string name="status_code_success">200</string>
 
-    <string name="key_not_set">Retrieving facemaps requires that you generate a public/private key pair per the instructions at https://dev.zoomlogin.com/zoomsdk/#/zoom-server-guide</string>
-    <string name="public_key_not_set">Public Key Not Set</string>
+    <string name="input_passport_number">Passport number</string>
+    <string name="input_expiration_date">Expiration date</string>
+    <string name="input_date_of_birth">Date of birth</string>
 
+    <string name="info_loading">Reading data…</string>
+    <string name="info_scan_passport">Please fill the details below and place your phone on top of the passport.\n\nFollowing information is required to decrypt passport data locally. We do not store, upload or share any of your data. The app is completely open source and available for audit.</string>
+
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
 
 </resources>

@@ -707,6 +707,88 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
         }
     }
 
+## 4. Integrate Accura NFC
+
+#### Step 1 : Add permission in your Manifest.
+     <manifest>
+         ...
+         <uses-permission android:name="android.permission.NFC" />
+         <uses-feature android:name="android.hardware.nfc" android:required="true" />
+     </manifest>
+
+#### Step 2 : Initialize NFC
+     AccuraNFCPassport nfcPassport = new AccuraNFCPassport(this);
+     private final PassportCallback nfcCallback = new PassportCallback() {
+
+        @Override
+        public void onPassportReadStart() {
+            // Show progress dialog
+        }
+
+        @Override
+        public void onPassportReadFinish() {
+            // Hide progress dialog
+        }
+
+        @Override
+        public void onPassportRead(Passport passport) {
+
+            if (passport == null) {
+                Toast.makeText(OcrResultActivity.this, "NFC passport Read Failed", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // display result
+        }
+
+        @Override
+        public void onCardException(Exception exception) {
+            exception.printStackTrace();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(OcrResultActivity.this, "Authentication has failed! Please try to scan the document again or introduce the data manually", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+     };
+     nfcPassport.setPassportCallback(nfcCallback);
+
+#### Step 3 : Set below details
+     if (nfcPassport != null) {
+         nfcPassport.setPassportNumber(passportNumber);
+         nfcPassport.setExpirationDate(expirationDate);
+         nfcPassport.setBirthDate(birthDate);
+     }
+
+#### Step 4 : Integrate below Overridden methods of your activity class
+    @Override
+    protected void onNewIntent(Intent intent) {
+        AccuraLog.loge(TAG, "onNewIntent");
+        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction()) || NfcAdapter.ACTION_TECH_DISCOVERED.equals(intent.getAction())) {
+            // drop NFC events
+            int i = nfcPassport.handleNfcTag(intent);
+        }else{
+            super.onNewIntent(intent);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        int isEnabled = nfcPassport.enableNFC();
+        if (isEnabled == AccuraNFCPassport.NFC_ERROR_NOT_ENABLED) {
+            Toast.makeText(this, "Please activate NFC and press Back to return to the application!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (nfcPassport != null) {
+            nfcPassport.disableNFC();
+        }
+    }
+
 ## ProGuard
 
 Depending on your ProGuard (DexGuard) config and usage, you may need to include the following lines in your proguards.
@@ -717,4 +799,7 @@ Depending on your ProGuard (DexGuard) config and usage, you may need to include 
 -keep class com.accurascan.ocr.mrz.interfaces.* {;}
 -keep public class com.inet.facelock.callback.FaceCallback {*;}
 -keep public class com.inet.facelock.callback.FaceDetectionResult {*;}
+// Add below line for NFC
+-keep public class net.sf.scuba.smartcards.IsoDepCardService{*;}
+-keep class org.bouncycastle.**
 ```

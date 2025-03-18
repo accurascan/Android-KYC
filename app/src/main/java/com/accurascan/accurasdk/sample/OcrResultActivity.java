@@ -1,13 +1,20 @@
 package com.accurascan.accurasdk.sample;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
@@ -19,11 +26,17 @@ import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
 import com.accurascan.facematch.util.BitmapHelper;
+import com.accurascan.ocr.mrz.interfaces.PassportCallback;
+import com.accurascan.ocr.mrz.model.AdditionalDocumentDetails;
+import com.accurascan.ocr.mrz.model.AdditionalPersonalDetails;
 import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
 import com.accurascan.ocr.mrz.model.PDF417Data;
+import com.accurascan.ocr.mrz.model.Passport;
 import com.accurascan.ocr.mrz.model.RecogResult;
+import com.accurascan.ocr.mrz.util.AccuraLog;
 import com.bumptech.glide.Glide;
+import com.docrecog.scan.AccuraNFCPassport;
 import com.docrecog.scan.RecogType;
 import com.facedetection.FMCameraScreenCustomization;
 import com.facedetection.SelfieFMCameraActivity;
@@ -32,7 +45,20 @@ import com.inet.facelock.callback.FaceCallback;
 import com.inet.facelock.callback.FaceDetectionResult;
 import com.inet.facelock.callback.FaceHelper;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+import kotlin.jvm.internal.Intrinsics;
+
 public class OcrResultActivity extends BaseActivity implements FaceCallback {
+
+    private static final String TAG = OcrResultActivity.class.getSimpleName();
 
     Bitmap face1;
     private final int ACCURA_LIVENESS_CAMERA = 101;
@@ -47,6 +73,8 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
     private FaceHelper faceHelper;
     private TextView tvFaceMatchScore, tvLivenessScore, tv_security;
     private boolean isFaceMatch = false, isLiveness = false;
+    private AlertDialog.Builder dialog;
+    private RecogType recogType;
 
     protected void onCreate(Bundle savedInstanceState) {
         if (getIntent().getIntExtra("app_orientation", 1) != 0) {
@@ -58,8 +86,11 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         setContentView(R.layout.activity_ocr_result);
 
         initUI();
-        RecogType recogType = RecogType.detachFrom(getIntent());
-
+        recogType = RecogType.detachFrom(getIntent());
+        if (nfcPassport == null) {
+            nfcPassport = new AccuraNFCPassport(this);
+            nfcPassport.setPassportCallback(nfcCallback);
+        }
         if (recogType == RecogType.OCR) {
             // RecogType.OCR
             OcrData ocrData = OcrData.getOcrResult();
@@ -454,6 +485,17 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
             addLayout("Other ID2", recogResult.otherid2);
             addLayout("Second Row Check No.", recogResult.secondrowchecksum);
             addLayout("Correct Second Row Check No.", recogResult.correctsecondrowchecksum);
+
+
+            birthDate = convertDate(recogResult.birth,"dd-MM-yy");
+            expirationDate = convertDate(recogResult.expirationdate, "dd-MM-yy");
+            passportNumber = recogResult.docnumber;
+            if (nfcPassport != null) {
+                nfcPassport.setPassportNumber(passportNumber);
+                nfcPassport.setExpirationDate(expirationDate);
+                nfcPassport.setBirthDate(birthDate);
+            }
+            openNFCDialog();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -879,4 +921,286 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
 
     }
 
+    private String passportNumber;
+    private String birthDate;
+    private String expirationDate;
+    private AccuraNFCPassport nfcPassport;
+
+    public void openNFCDialog() {
+        if (dialog == null) {
+            if (recogType == RecogType.MRZ) {
+                ((TextView) findViewById(R.id.tv_bank_title)).setText("NFC Response");
+            }
+            dialog = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.dialog_nfc_info, null);
+            dialog.setView(view);
+
+            EditText passportNumberView;
+            EditText expirationDateView;
+            EditText birthDateView;
+            passportNumberView = view.findViewById(R.id.input_passport_number);
+            expirationDateView  = view.findViewById(R.id.input_expiration_date);
+            birthDateView = view.findViewById(R.id.input_date_of_birth);
+
+            passportNumberView.setText(passportNumber);
+            expirationDateView.setText(expirationDate);
+            birthDateView.setText(birthDate);
+            passportNumberView.addTextChangedListener(new TextWatcher() {
+                public void beforeTextChanged(@NotNull CharSequence s, int start, int count, int after) {
+                }
+
+                public void onTextChanged(@NotNull CharSequence s, int start, int before, int count) {
+                }
+
+                public void afterTextChanged(@NotNull Editable s) {
+                    passportNumber = s.toString();
+                    if (nfcPassport != null) {
+                        nfcPassport.setPassportNumber(passportNumber);
+                    }
+                }
+            });
+
+            expirationDateView.setOnClickListener(it -> {
+                Calendar c = loadDate(expirationDateView.getText().toString());
+                DatePickerDialog dialog = new DatePickerDialog(OcrResultActivity.this,
+                        (datePicker, year, monthOfYear, dayOfMonth) ->
+                        {
+                            expirationDate = convertDate(saveDate(year, monthOfYear, dayOfMonth),"yyyy-MM-dd");
+                            expirationDateView.setText(expirationDate);
+                            if (nfcPassport != null) {
+                                nfcPassport.setExpirationDate(expirationDate);
+                            }
+
+                        }, c.get(1), c.get(2), c.get(5));
+                dialog.show();
+            });
+            birthDateView.setOnClickListener(it -> {
+                Calendar c = loadDate(birthDateView.getText().toString());
+                DatePickerDialog dialog = new DatePickerDialog(OcrResultActivity.this,
+                        (datePicker, year, monthOfYear, dayOfMonth) -> {
+                            birthDate = convertDate(saveDate(year, monthOfYear, dayOfMonth),"yyyy-MM-dd");
+                            birthDateView.setText(birthDate);
+                            if (nfcPassport != null) {
+                                nfcPassport.setBirthDate(birthDate);
+                            }
+                        }, c.get(1), c.get(2), c.get(5));
+                dialog.show();
+            });
+            dialog.setPositiveButton("OK", (dialogInterface, i) -> {
+                dialogInterface.dismiss();
+            });
+            dialog.setCancelable(false);
+        }
+
+        if (!isFinishing()) {
+            dialog.show();
+        }
+    }
+
+    public Calendar loadDate(String dateString) {
+        Calendar calendar = Calendar.getInstance();
+        if (dateString.length() > 0) {
+            try {
+                Date parse = (new SimpleDateFormat("yyMMdd", Locale.US)).parse(dateString);
+                if (parse != null) {
+                    calendar.setTimeInMillis(parse.getTime());
+                }
+            } catch (ParseException var4) {
+                Log.w("TAG", (Throwable)var4);
+            }
+        }
+
+        return calendar;
+    }
+    public String saveDate(int year, int monthOfYear, int dayOfMonth) {
+        Locale locale = Locale.US;
+        String format = "%d-%02d-%02d";
+        Object[] objects = new Object[]{year, monthOfYear + 1, dayOfMonth};
+        return String.format(locale, format, Arrays.copyOf(objects, objects.length));
+    }
+
+    String nfcResponse  = "NFC response:-" + "<br/>";
+    private void addNFCLayout(String key, String s) {
+        if (TextUtils.isEmpty(s)) return;
+        View layout1 = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+        TextView tv_key1 = layout1.findViewById(R.id.tv_key);
+        TextView tv_value1 = layout1.findViewById(R.id.tv_value);
+        tv_key1.setText(key);
+        tv_value1.setText(s);
+        bank_table_layout.addView(layout1);
+        nfcResponse = nfcResponse + key + ":" + s.replaceAll("<", "&lt;") + "<br/>";
+    }
+    private void addTitleLayout(String key) {
+        View layout1 = LayoutInflater.from(OcrResultActivity.this).inflate(R.layout.table_row, null);
+        TextView tv_key1 = layout1.findViewById(R.id.tv_key);
+        View view = layout1.findViewById(R.id.lout_right);
+        tv_key1.setText(key);
+        view.setVisibility(View.GONE);
+        bank_table_layout.addView(layout1);
+        nfcResponse = nfcResponse + key + "<br/>";
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (nfcPassport == null) {
+            nfcPassport = new AccuraNFCPassport(this);
+            nfcPassport.setPassportCallback(nfcCallback);
+        }
+        int isEnabled = nfcPassport.enableNFC();
+        if (isEnabled == AccuraNFCPassport.NFC_ERROR_NOT_ENABLED) {
+            Toast.makeText(this, "Please activate NFC and press Back to return to the application!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (nfcPassport != null) {
+            nfcPassport.disableNFC();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction()) || NfcAdapter.ACTION_TECH_DISCOVERED.equals(intent.getAction())) {
+            // drop NFC events
+            int i = nfcPassport.handleNfcTag(intent);
+        }else{
+            super.onNewIntent(intent);
+        }
+    }
+
+    private String convertDate(String input, String format) {
+        if (input == null) {
+            return null;
+        } else {
+            String var2;
+            try {
+                SimpleDateFormat yyMMdd = new SimpleDateFormat("yyMMdd", Locale.US);
+                Date date = (new SimpleDateFormat(format, Locale.US)).parse(input);
+                Intrinsics.checkNotNull(date);
+                var2 = yyMMdd.format(date);
+            } catch (ParseException var4) {
+                Log.w(OcrResultActivity.class.getSimpleName(), (Throwable)var4);
+                var2 = null;
+            }
+
+            return var2;
+        }
+    }
+    private final PassportCallback nfcCallback = new PassportCallback() {
+        @Override
+        public void onPassportReadStart() {
+            showProgressDialog();
+        }
+
+        @Override
+        public void onPassportReadFinish() {
+            dismissProgressDialog();
+        }
+
+        @Override
+        public void onPassportRead(Passport passport) {
+
+            if (passport == null) {
+                Toast.makeText(OcrResultActivity.this, "NFC passport Read Failed", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            ly_bank_container.setVisibility(View.VISIBLE);
+            addNFCLayout("firstName", passport.getFirstName());
+            addNFCLayout("lastName", passport.getLastName());
+            addNFCLayout("gender", passport.getGender());
+            addNFCLayout("state", passport.getState());
+            addNFCLayout("nationality", passport.getNationality());
+            addNFCLayout("documentNumber", passport.getDocumentNumber());
+            addNFCLayout("documentCode", passport.getDocumentCode());
+            addNFCLayout("dateOfBirth", passport.getDateOfBirth());
+            addNFCLayout("dateOfExpiry", passport.getDateOfExpiry());
+            addNFCLayout("personalNumber", passport.getPersonalNumber());
+            addNFCLayout("optionalData1", passport.getOptionalData1());
+            addNFCLayout("optionalData2", passport.getOptionalData2());
+            addNFCLayout("documentType", passport.getDocumentType() + "");
+            addNFCLayout("chipAuth", passport.getChipAuth() + "");
+            addNFCLayout("passiveAuth", passport.getPassiveAuth() + "");
+
+            try {
+                if (passport.getFaceImage() != null) {
+//                    Glide.with(OcrResultActivity.this).load(passport.getFaceImage().copy(Bitmap.Config.ARGB_8888, false)).centerCrop().into(ivUserProfile2);
+//                    loutImg2.setVisibility(View.VISIBLE);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            AccuraLog.loge(TAG, "Passport details success");
+            try {
+                AdditionalPersonalDetails personalDetails = passport.getAdditionalPersonalDetails();
+                AccuraLog.loge(TAG, "Passport details success : onPassportRead: personalDetails : ");
+                if (personalDetails != null) {
+                    addTitleLayout("Additional Personal Details:");
+                    addNFCLayout("nameOfHolder", personalDetails.getNameOfHolder());
+                    try {
+                        addNFCLayout("otherNames", personalDetails.getOtherNames().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    addNFCLayout("personalNumber", personalDetails.getPersonalNumber());
+                    addNFCLayout("fullDateOfBirth", personalDetails.getFullDateOfBirth());
+                    try {
+                        addNFCLayout("placeOfBirth", personalDetails.getPlaceOfBirth().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        addNFCLayout("permanentAddress", personalDetails.getPermanentAddress().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    addNFCLayout("telephone", personalDetails.getTelephone());
+                    addNFCLayout("profession", personalDetails.getProfession());
+                    addNFCLayout("title", personalDetails.getTitle());
+                    addNFCLayout("personalSummary", personalDetails.getPersonalSummary());
+                    addNFCLayout("proofOfCitizenship", personalDetails.getProofOfCitizenship() + "");
+                    try {
+                        addNFCLayout("otherValidTDNumbers", personalDetails.getOtherValidTDNumbers().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    addNFCLayout("custodyInformation", personalDetails.getCustodyInformation());
+                    addNFCLayout("tag", personalDetails.getTag() + "");
+                }
+                AdditionalDocumentDetails documentDetails = passport.getAdditionalDocumentDetails();
+                if (documentDetails != null) {
+                    addTitleLayout("Additional Document Details:");
+                    addNFCLayout("dateAndTimeOfPersonalization", documentDetails.getDateAndTimeOfPersonalization());
+                    addNFCLayout("dateOfIssue", documentDetails.getDateOfIssue());
+                    addNFCLayout("endorsementsAndObservations", documentDetails.getEndorsementsAndObservations());
+                    addNFCLayout("issuingAuthority", documentDetails.getIssuingAuthority());
+                    try {
+                        addNFCLayout("namesOfOtherPersons", documentDetails.getNamesOfOtherPersons().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    addNFCLayout("personalizationSystemSerialNumber", documentDetails.getPersonalizationSystemSerialNumber());
+                    addNFCLayout("taxOrExitRequirements", documentDetails.getTaxOrExitRequirements());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onCardException(Exception exception) {
+            exception.printStackTrace();
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(OcrResultActivity.this, "Authentication has failed! Please try to scan the document again or introduce the data manually", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    };
 }
