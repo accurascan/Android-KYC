@@ -23,7 +23,7 @@ Below steps to setup AccuraScan's SDK to your project.
 
 #### Step 2. Add the token to `gradle.properties`:
 
-    authToken=jp_45kf9tvkijvd9c7cf34mehj1b6
+    authToken=jp_g8ttn08p68n9brtt8jshql7q33
 
 #### Step 3: Add the dependency:
     Set Accura SDK as a dependency to our app/build.gradle file.
@@ -61,11 +61,11 @@ Below steps to setup AccuraScan's SDK to your project.
     dependencies {
         ...
         // Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.2.1'
+        implementation 'com.github.accurascan:AccuraOCR:6.2.5'
         // Accura Face match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.7'
+        implementation 'com.github.accurascan:AccuraFaceMatch:4.0.0'
         // Accura Liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.4.5'
+        implementation 'com.github.accurascan:Liveness-Android:3.7.0'
     }
 
 #### Step 4: Add files to project assets folder:
