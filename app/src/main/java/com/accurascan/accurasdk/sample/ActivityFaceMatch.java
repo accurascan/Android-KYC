@@ -22,6 +22,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.accurascan.accurasdk.sample.download.DownloadUtils;
 import com.accurascan.facematch.customview.FaceImageview;
@@ -61,6 +66,23 @@ public class ActivityFaceMatch extends BaseActivity implements FaceCallback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_facematch);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) { // Android 15+
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            controller.setAppearanceLightStatusBars(true);
+
+            ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), (v, windowInsets) -> {
+                Insets statusBars = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
+                Insets navigationBars = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+                Insets systemGestures = windowInsets.getInsets(WindowInsetsCompat.Type.systemGestures());
+                Insets displayCutout = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+                int top = Math.max(statusBars.top, displayCutout.top);
+                int bottom = Math.max(Math.max(navigationBars.bottom, systemGestures.bottom),
+                        displayCutout.bottom);
+                v.setPadding(0, top, 0, bottom);
+                return windowInsets;
+            });
+        }
 
         findViewById(R.id.ivBack).setOnClickListener(new OnClickListener() {
             @Override

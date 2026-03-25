@@ -23,7 +23,7 @@ Below steps to setup AccuraScan's SDK to your project.
 
 #### Step 2. Add the token to `gradle.properties`:
 
-    authToken=jp_45kf9tvkijvd9c7cf34mehj1b6
+    authToken=jp_g8ttn08p68n9brtt8jshql7q33
 
 #### Step 3: Add the dependency:
     Set Accura SDK as a dependency to our app/build.gradle file.
@@ -61,11 +61,11 @@ Below steps to setup AccuraScan's SDK to your project.
     dependencies {
         ...
         // Accura OCR
-        implementation 'com.github.accurascan:AccuraOCR:6.2.1'
+        implementation 'com.github.accurascan:AccuraOCR:6.2.5'
         // Accura Face match
-        implementation 'com.github.accurascan:AccuraFaceMatch:3.2.7'
+        implementation 'com.github.accurascan:AccuraFaceMatch:4.0.0'
         // Accura Liveness
-        implementation 'com.github.accurascan:Liveness-Android:3.4.7'
+        implementation 'com.github.accurascan:Liveness-Android:3.8.1'
     }
 
 #### Step 4: Add files to project assets folder:
@@ -665,10 +665,33 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     LivenessCustomization livenessCustomization = new LivenessCustomization();
 
     livenessCustomization.backGroundColor = getResources().getColor(R.color.livenessBackground);
+
+    // oval border customization
+    livenessCustomization.ovalBorderColor = Color.RED;
+    livenessCustomization.ovalBorderSize = 2;
+
+     // close icon customization
     livenessCustomization.closeIconColor = getResources().getColor(R.color.livenessCloseIcon);
+    livenessCustomization.closeIconPositioned = 1; // 0-left, 1-right
+    livenessCustomization.closeIconDrawable = R.drawable.custom_drawable;
+
+    // title text customization
+    livenessCustomization.titleTextSize = 22;
+    livenessCustomization.setTitleTextPosition(ViewPositionHelper.Vertical.CENTER, 0);
+    livenessCustomization.titleFontResId = R.font.custom_font;
+    livenessCustomization.feedBackTopMessage = "Keep Face In Frame \n Face Must Be Near To Camera ";
+
+    // livness info dialog show/hide
+    livenessCustomization.livenessInfoDialog = true;        
+    livenessCustomization.livenessInfoMessage = "Remove Cap/Glasses To Proceed For Liveness Check";
+
+    // feedback text customization
+    livenessCustomization.enableFeedbackBackground = true; // false
+    livenessCustomization.feedbackFontResId = R.font.custom_font;
     livenessCustomization.feedbackBackGroundColor = Color.TRANSPARENT;
     livenessCustomization.feedbackTextColor = Color.BLACK;
     livenessCustomization.feedbackTextSize = 18;
+
     livenessCustomization.feedBackframeMessage = "Frame Your Face";
     livenessCustomization.feedBackAwayMessage = "Move Phone Away";
     livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
@@ -702,11 +725,12 @@ Contact AccuraScan at contact@accurascan.com for Liveness SDK or API
     livenessCustomization.setGlarePercentage(6/*glareMinPercentage*/, 99/*glareMaxPercentage*/);
     livenessCustomization.setApiKey("add api key");
 
-    // Set Liveness Mode as required
-    // 1. LivenessMode.FACE_3D - To enable Face Movement
-    // 2. LivenessMode.VOICE   - To enable Oral Verification
-    // 3. LivenessMode.All     - To enable Face Movement and Oral Verification both
-    livenessCustomization.livenessMode = LivenessMode.ALL;
+     // Set Liveness Mode as required
+     // 1. LivenessMode.FACE_3D - To enable Face Movement(Left)
+     // 2. LivenessMode.FACE_3D_R - To enable Face Movement(Right)
+     // 3. LivenessMode.VOICE   - To enable Oral Verification
+     // 4. LivenessMode.All     - To enable Face Movement and Oral Verification both
+    livenessCustomization.livenessMode = LivenessMode.ALL.getValue();
 
     //To customize Verified Sound
     livenessCustomization.livenessVerifiedAlertSound = Your Uri;

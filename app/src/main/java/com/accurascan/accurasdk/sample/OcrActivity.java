@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,6 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.accurascan.accurasdk.sample.adapter.BarCodeFormatListAdapter;
 import com.accurascan.ocr.mrz.CameraView;
@@ -90,6 +94,14 @@ public class OcrActivity extends SensorsActivity implements OcrCallback {
         requestWindowFeature(Window.FEATURE_NO_TITLE); // Hide the window title.
         setContentView(R.layout.ocr_activity);
         AccuraLog.loge(TAG, "Start Camera Activity");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), (v, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
+                v.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+                v.setPadding(0, insets.top, 0, 0);
+                return windowInsets;
+            });
+        }
         init();
 
         recogType = RecogType.detachFrom(getIntent());

@@ -18,7 +18,7 @@
 
 
     // Accura liveness screen
-    <color name="livenessBackground">#FFC4C4C5</color>
+    <color name="livenessBackground">#E6C4C4C5</color>
     <color name="livenessCloseIcon">#FF000000</color>
     <color name="livenessfeedbackBg">#00000000</color>
     <color name="livenessfeedbackText">#FF000000</color>

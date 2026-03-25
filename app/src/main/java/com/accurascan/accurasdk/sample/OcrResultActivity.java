@@ -27,6 +27,7 @@ import com.accurascan.facedetection.LivenessCustomization;
 import com.accurascan.facedetection.LivenessMode;
 import com.accurascan.facedetection.SelfieCameraActivity;
 import com.accurascan.facedetection.model.AccuraVerificationResult;
+import com.accurascan.facedetection.utils.ViewPositionHelper;
 import com.accurascan.facematch.util.BitmapHelper;
 import com.accurascan.ocr.mrz.model.CardDetails;
 import com.accurascan.ocr.mrz.model.OcrData;
@@ -799,6 +800,28 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         livenessCustomization.feedbackBackGroundColor = getResources().getColor(R.color.livenessfeedbackBg);
         livenessCustomization.feedbackTextColor = getResources().getColor(R.color.livenessfeedbackText);
         livenessCustomization.feedbackTextSize = 18;
+
+        // close icon customization
+        livenessCustomization.closeIconPositioned = 1; // 0-left, 1-right
+//        livenessCustomization.closeIconDrawable = R.drawable.custom_drawable;
+
+        // title text customization
+        livenessCustomization.titleTextSize = 22;
+        livenessCustomization.setTitleTextPosition(ViewPositionHelper.Vertical.CENTER, 0);
+//        livenessCustomization.titleFontResId = R.font.custom_font;
+
+        // oval border customization
+        livenessCustomization.ovalBorderColor = Color.RED;
+        livenessCustomization.ovalBorderSize = 2;
+
+        // feedback text customization
+        livenessCustomization.enableFeedbackBackground = true; // false
+//        livenessCustomization.feedbackFontResId = R.font.custom_font;
+
+        // livness info dialog show/hide
+        livenessCustomization.livenessInfoDialog = true;
+
+        livenessCustomization.feedBackTopMessage = "Keep Face In Frame \n Face Must Be Near To Camera ";
         livenessCustomization.feedBackframeMessage = "Frame Your Face";
         livenessCustomization.feedBackAwayMessage = "Move Phone Away";
         livenessCustomization.feedBackOpenEyesMessage = "Keep Your Eyes Open";
@@ -831,10 +854,11 @@ public class OcrResultActivity extends BaseActivity implements FaceCallback {
         }
 
         // Set Liveness Mode as required
-        // 1. LivenessMode.FACE_3D - To enable Face Movement
-        // 2. LivenessMode.VOICE   - To enable Oral Verification
-        // 3. LivenessMode.All     - To enable Face Movement and Oral Verification both
-        livenessCustomization.livenessMode = LivenessMode.ALL;
+        // 1. LivenessMode.FACE_3D - To enable Face Movement(Left)
+        // 2. LivenessMode.FACE_3D_R - To enable Face Movement(Right)
+        // 3. LivenessMode.VOICE   - To enable Oral Verification
+        // 4. LivenessMode.All     - To enable Face Movement and Oral Verification both
+        livenessCustomization.livenessMode = LivenessMode.ALL.getValue();
 
         livenessCustomization.livenessVerifiedAlertSound = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getPackageName() + "/raw/accura_liveness_verified");
         livenessCustomization.livenessVerifiedAnimation = R.drawable.approved_sign;
